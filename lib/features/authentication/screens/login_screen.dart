@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 100), // Top spacing
                 Center(
                   child: SvgPicture.asset(
-                    'assets/logos/shield.svg',
+                    'assets/logos/main logo.svg',
                     width: 100,
                     height: 100,
                   ),
