@@ -15,7 +15,7 @@ dependencies:
   flutter_svg: ^2.0.7
   sqflite: ^2.0.0
   path: ^1.8.0
-  flutter_secure_storage: ^5.0.0
+  flutter_secure_storage: ^9.2.2
 
   # Utility Packages
   
