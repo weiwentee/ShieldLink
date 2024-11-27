@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shieldlink/features/authentication/screens/login_screen.dart';
 import 'package:shieldlink/features/authentication/screens/temp_success_screen.dart';
 import 'package:shieldlink/features/authentication/screens/reg_screen.dart';
+import 'package:shieldlink/features/chat/screens/chat_list_screen.dart';
+import 'package:shieldlink/features/chat/screens/chat_screen.dart';
+import 'package:shieldlink/features/chat/services/chat_services.dart';
 
 void main() {
   runApp(const ShieldLink());
