@@ -1,9 +1,11 @@
 // This screen will display a list of chats
-
+// chat_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'chat_screen.dart';
+import 'settings_page.dart';
+import 'profile_page.dart';
 
 class ChannelListPage extends StatefulWidget {
   const ChannelListPage({
@@ -34,6 +36,39 @@ class _ChannelListPageState extends State<ChannelListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('ShieldLink Chats'),
+        backgroundColor: Colors.blue,
+      ),
+      drawer: Drawer(
+        backgroundColor: Colors.white,
+        child: ListView(
+          children: [
+            const DrawerHeader(
+              child: Text('ShieldLink Menu'),
+            ),
+            ListTile(
+              title: const Text('Profile'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfilePage()),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
+              },
+            ),
+            const Divider(),
+          ],
+        ),
+      ),
       body: StreamChannelListView(
         controller: _listController,
         itemBuilder: _channelTileBuilder,

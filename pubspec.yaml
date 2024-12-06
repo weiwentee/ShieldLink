@@ -46,6 +46,7 @@ flutter:
   # ---------- LOCAL ASSETS ---------- #
   assets:
     - assets/logos/
+    - assets/user_icon/
   
   # ---------- LOCAL FONTS ---------- #
   fonts:
