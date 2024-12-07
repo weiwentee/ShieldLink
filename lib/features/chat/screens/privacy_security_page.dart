@@ -4,10 +4,10 @@ class PrivacySecurityPage extends StatefulWidget {
   const PrivacySecurityPage({super.key});
 
   @override
-  _PrivacySecurityPageState createState() => _PrivacySecurityPageState();
+  PrivacySecurityPageState createState() => PrivacySecurityPageState();
 }
 
-class _PrivacySecurityPageState extends State<PrivacySecurityPage> {
+class PrivacySecurityPageState extends State<PrivacySecurityPage> {
   bool biometricUnlock = false;
 
   @override
