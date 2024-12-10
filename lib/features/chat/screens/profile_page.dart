@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shieldlink/features/authentication/screens/login_screen.dart';
+import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
 
 class ProfilePage extends StatelessWidget {
   final String userName = "John Doe";  // Example username
@@ -40,7 +40,7 @@ class ProfilePage extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
