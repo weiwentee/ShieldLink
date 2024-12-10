@@ -26,6 +26,8 @@ dependencies:
 
   # State Management
   get: ^4.3.8
+  collection: ^1.18.0
+  http: ^1.2.2
 
   # Product Specific
 
