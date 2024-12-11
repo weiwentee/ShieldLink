@@ -182,10 +182,12 @@ class _SignUpPageState extends State<SignUpPage> {
         case 'weak-password':
           return 'Password is too weak. Please choose a stronger password.';
         default:
-          return 'An unexpected error occurred. Please try again later.';
+          // return 'An unexpected error occurred. Please try again later.';
+          return ':D';
       }
     } else {
-      return 'An unknown error occurred. Please try again later.';
+      // return 'An unknown error occurred. Please try again later.';
+      return ':DD';
     }
   }
 }
