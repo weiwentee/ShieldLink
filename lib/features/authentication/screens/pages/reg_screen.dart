@@ -2,8 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
-import 'package:shieldlink/features/authentication/screens/widgets/form_container_widget.dart';
+// import 'package:shieldlink/features/authentication/screens/widgets/form_container_widget.dart';
 import 'package:shieldlink/features/global/toast.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -17,7 +18,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
-
+  bool _isPasswordVisible = false;
   bool isSigningUp = false;
 
   @override
@@ -40,6 +41,11 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SvgPicture.asset(
+                'assets/logos/main logo.svg',
+                width: 120,
+                height: 120,
+              ),
               Text(
                 "Sign Up",
                 style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
@@ -47,18 +53,51 @@ class _SignUpPageState extends State<SignUpPage> {
               SizedBox(
                 height: 30,
               ),
-              FormContainerWidget(
+              TextField(
                 controller: _emailController,
-                hintText: "Email",
-                isPasswordField: false,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  labelStyle: const TextStyle(color: Colors.blue),
+                  border: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                ),
+                keyboardType: TextInputType.emailAddress,
+                cursorColor: Colors.blue,
               ),
               SizedBox(
                 height: 10,
               ),
-              FormContainerWidget(
+              TextField(
                 controller: _passwordController,
-                hintText: "Password",
-                isPasswordField: true,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  labelStyle: const TextStyle(color: Colors.blue),
+                  border: UnderlineInputBorder(),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                ),
+                cursorColor: Colors.blue,
               ),
               SizedBox(
                 height: 30,
