@@ -1,9 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:path/path.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart';
 import 'package:shieldlink/features/authentication/screens/widgets/form_container_widget.dart';
@@ -19,7 +16,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isSigning = false;
   final FirebaseAuthService _auth = FirebaseAuthService();
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  // final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -64,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
                   labelText: "Email",
                   labelStyle: const TextStyle(color: Colors.blue),
                   border: UnderlineInputBorder(
-                    borderSide: BorderSide()
+                    borderSide: BorderSide(),
                   ),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.blue),
@@ -136,41 +133,6 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(
                 height: 10,
               ),
-              GestureDetector(
-                onTap: () {
-                  _signInWithGoogle();
-                },
-                child: Container(
-                  width: double.infinity,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          FontAwesomeIcons.google,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          "Sign in with Google",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -220,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (user != null) {
         showToast(message: "Successfully signed in!");
-        Navigator.pushNamed(context as BuildContext, "/home");
+        Navigator.pushNamed(context, "/home");
       }
     } catch (e) {
       setState(() {
@@ -249,28 +211,4 @@ class _LoginPageState extends State<LoginPage> {
       return ':DD';
     }
   }
-
-  _signInWithGoogle() async {
-    final GoogleSignIn _googleSignIn = GoogleSignIn();
-
-    try {
-      final GoogleSignInAccount? googleSignInAccount =
-          await _googleSignIn.signIn();
-
-      if (googleSignInAccount != null) {
-        final GoogleSignInAuthentication googleSignInAuthentication =
-            await googleSignInAccount.authentication;
-
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          idToken: googleSignInAuthentication.idToken,
-          accessToken: googleSignInAuthentication.accessToken,
-        );
-
-        await _firebaseAuth.signInWithCredential(credential);
-        Navigator.pushNamed(context as BuildContext, "/home");
-      }
-    } catch (e) {
-      showToast(message: 'Google sign-in failed. Please try again.');
-    }
-  }
-}  
+}
