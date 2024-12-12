@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // Import the flutter_svg package
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
   final Widget? child;
@@ -21,13 +21,13 @@ class _SplashScreenState extends State<SplashScreen>
     // Initialize the animation controller and fade animation
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
     );
 
     _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(_controller);
 
     // Start the fade-out animation after a 2-second delay
-    Future.delayed(Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () {
       _controller.forward().whenComplete(() => _navigateToNextScreen());
     });
   }
@@ -47,6 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Set background to white
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Center(
@@ -59,9 +60,9 @@ class _SplashScreenState extends State<SplashScreen>
                 width: 150, // Adjust width as needed
                 height: 150, // Adjust height as needed
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               // Welcome Text
-              Text(
+              const Text(
                 "Welcome to ShieldLink!",
                 style: TextStyle(
                   color: Colors.blue,
