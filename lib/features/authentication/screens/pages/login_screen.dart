@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path/path.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart';
+import 'package:shieldlink/features/authentication/screens/widgets/form_container_widget.dart';
 import 'package:shieldlink/features/global/toast.dart';
 
 class LoginPage extends StatefulWidget {
@@ -32,162 +34,173 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('ShieldLink'),
-        backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
+        title: Text("Login"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 100),
-            Center(
-              child: SvgPicture.asset(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
                 'assets/logos/main logo.svg',
-                width: 100,
-                height: 100,
+                width: 120,
+                height: 120,
               ),
-            ),
-            const Text(
-              'Enter your credentials',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              cursorColor: Colors.blue,
-              style: const TextStyle(color: Colors.black),
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                labelStyle: const TextStyle(color: Colors.blue),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2),
-                ),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 1),
-                ),
+              Text(
+                "Login",
+                style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              cursorColor: Colors.blue,
-              style: const TextStyle(color: Colors.black),
-              obscureText: !_isPasswordVisible,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                labelStyle: const TextStyle(color: Colors.blue),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2),
-                ),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 1),
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isPasswordVisible
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: Colors.grey,
+              SizedBox(
+                height: 30,
+              ),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  border: UnderlineInputBorder(),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _isPasswordVisible = !_isPasswordVisible;
-                    });
-                  },
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                ),
+                keyboardType: TextInputType.emailAddress,
+                cursorColor: Colors.blue,
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextField(
+                controller: _passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  border: UnderlineInputBorder(),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                ),
+                cursorColor: Colors.blue,
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              GestureDetector(
+                onTap: () {
+                  _signIn();
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: _isSigning
+                        ? CircularProgressIndicator(
+                            color: Colors.white,
+                          )
+                        : Text(
+                            "Login",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _signIn(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                minimumSize: const Size.fromHeight(45), // Match Google button height
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+              SizedBox(
+                height: 10,
+              ),
+              GestureDetector(
+                onTap: () {
+                  _signInWithGoogle();
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.google,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          "Sign in with Google",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-              child: _isSigning
-                  ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
-                  : const Text(
-                      'Login',
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Don't have an account?"),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignUpPage()),
+                        (route) => false,
+                      );
+                    },
+                    child: Text(
+                      "Sign Up",
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Colors.blue,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-            ),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: _signInWithGoogle,
-              child: Container(
-                width: double.infinity,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(
-                        FontAwesomeIcons.google,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        "Sign in with Google",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
                   ),
-                ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Don't have an account?"),
-                const SizedBox(width: 5),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignUpPage()),
-                    );
-                  },
-                  child: const Text(
-                    "Sign Up",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   void _signIn() async {
-    setState(() => _isSigning = true);
+    setState(() {
+      _isSigning = true;
+    });
 
     String email = _emailController.text;
     String password = _passwordController.text;
@@ -195,15 +208,21 @@ class _LoginPageState extends State<LoginPage> {
     try {
       User? user = await _auth.signInWithEmailAndPassword(email, password);
 
-      setState(() => _isSigning = false);
+      setState(() {
+        _isSigning = false;
+      });
 
       if (user != null) {
         showToast(message: "Successfully signed in!");
-        Navigator.pushNamed(context, "/home");
+        Navigator.pushNamed(context as BuildContext, "/home");
       }
     } catch (e) {
-      setState(() => _isSigning = false);
-      showToast(message: _handleLoginError(e));
+      setState(() {
+        _isSigning = false;
+      });
+
+      String errorMessage = _handleLoginError(e);
+      showToast(message: errorMessage);
     }
   }
 
@@ -220,7 +239,8 @@ class _LoginPageState extends State<LoginPage> {
           return 'An unexpected error occurred. Please try again later.';
       }
     } else {
-      return 'An unknown error occurred. Please try again.';
+      // return 'An unknown error occurred. Please try again.';
+      return ':DD';
     }
   }
 
@@ -241,10 +261,10 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         await _firebaseAuth.signInWithCredential(credential);
-        Navigator.pushNamed(context, "/home");
+        Navigator.pushNamed(context as BuildContext, "/home");
       }
     } catch (e) {
       showToast(message: 'Google sign-in failed. Please try again.');
     }
   }
-}
+}  
