@@ -9,41 +9,68 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+
   @override
   void initState() {
-    Future.delayed(
-      Duration(seconds: 3), () {
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => widget.child!), (route) => false);
-      },
-    );
     super.initState();
+
+    // Initialize the animation controller and fade animation
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(_controller);
+
+    // Start the fade-out animation after a 2-second delay
+    Future.delayed(Duration(seconds: 2), () {
+      _controller.forward().whenComplete(() => _navigateToNextScreen());
+    });
+  }
+
+  void _navigateToNextScreen() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => widget.child!),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // SVG Image
-            SvgPicture.asset(
-              'assets/logos/main logo.svg', // Path to your SVG file
-              width: 150, // Adjust width as needed
-              height: 150, // Adjust height as needed
-            ),
-            SizedBox(height: 20),
-            // Welcome Text
-            Text(
-              "Welcome to ShieldLink!",
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-                fontSize: 24, // Adjust font size as needed
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // SVG Image
+              SvgPicture.asset(
+                'assets/logos/main logo.svg', // Path to your SVG file
+                width: 150, // Adjust width as needed
+                height: 150, // Adjust height as needed
               ),
-            ),
-          ],
+              SizedBox(height: 20),
+              // Welcome Text
+              Text(
+                "Welcome to ShieldLink!",
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24, // Adjust font size as needed
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -36,6 +36,7 @@ dependencies:
   # State Management
   get: ^4.3.8
   collection: ^1.18.0
+  passwordfield: ^0.2.0
 
   # Product Specific
 
@@ -55,8 +56,8 @@ flutter:
 
   # ---------- LOCAL ASSETS ---------- #
   assets:
-    - assets/logos/
-    - assets/user_icon/
+  - assets\logos\main logo.svg    
+  - assets/user_icon/BMW_iX.jpg
   
   # ---------- LOCAL FONTS ---------- #
   fonts:
