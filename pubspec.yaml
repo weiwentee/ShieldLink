@@ -26,6 +26,7 @@ dependencies:
   google_sign_in: ^6.2.2
   # firebase_auth_web: ^5.13.5
   # firebase_storage_web: ^3.9.0
+  google_fonts: ^6.2.1
 
   # Utility Packages
   
@@ -47,7 +48,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^5.0.0
 
 

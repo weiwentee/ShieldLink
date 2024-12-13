@@ -608,6 +608,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.3"
+  google_fonts:
+    dependency: "direct main"
+    description:
+      name: google_fonts
+      sha256: b1ac0fe2832c9cc95e5e88b57d627c5e68c223b9657f4b96e1487aa9098c7b82
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.2.1"
   google_identity_services_web:
     dependency: transitive
     description:
@@ -992,6 +1000,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  passwordfield:
+    dependency: "direct main"
+    description:
+      name: passwordfield
+      sha256: d7a1e81f0f5a2ab9404a3e595c27cc9405356f1d1ab8120ea81fe689ebbab29a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   path:
     dependency: "direct main"
     description:
