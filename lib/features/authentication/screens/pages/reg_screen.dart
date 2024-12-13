@@ -1,8 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
-import 'package:shieldlink/features/authentication/screens/widgets/form_container_widget.dart';
 import 'package:shieldlink/features/global/toast.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -19,6 +18,7 @@ class _SignUpPageState extends State<SignUpPage> {
   TextEditingController _passwordController = TextEditingController();
 
   bool isSigningUp = false;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -30,9 +30,13 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // White background
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Sign Up"),
+        title: const Text("Sign Up"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Center(
         child: Padding(
@@ -40,32 +44,65 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 "Sign Up",
-                style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 27,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              SizedBox(
-                height: 30,
-              ),
-              FormContainerWidget(
+              const SizedBox(height: 30),
+
+              // Email Text Field
+              TextField(
                 controller: _emailController,
-                hintText: "Email",
-                isPasswordField: false,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  labelStyle: TextStyle(color: Colors.blue),
+                  border: UnderlineInputBorder(),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                ),
+                keyboardType: TextInputType.emailAddress,
+                cursorColor: Colors.blue,
               ),
-              SizedBox(
-                height: 10,
-              ),
-              FormContainerWidget(
+              const SizedBox(height: 10),
+
+              // Password Text Field with Eye Icon
+              TextField(
                 controller: _passwordController,
-                hintText: "Password",
-                isPasswordField: true,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  labelStyle: const TextStyle(color: Colors.blue),
+                  border: const UnderlineInputBorder(),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                ),
+                cursorColor: Colors.blue,
               ),
-              SizedBox(
-                height: 30,
-              ),
+              const SizedBox(height: 30),
+
               GestureDetector(
                 onTap: () {
-                  _signUp();
+                  _signUp(); // Existing signup logic
                 },
                 child: Container(
                   width: double.infinity,
@@ -76,40 +113,48 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   child: Center(
                     child: isSigningUp
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text(
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
                             "Sign Up",
                             style: TextStyle(
-                                color: Colors.white, fontWeight: FontWeight.bold),
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                   ),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Already have an account?"),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  GestureDetector(
+                  const Text("Already have an account?"),
+                  const SizedBox(width: 5),
+
+                  // Cursor Hover for Login Link
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
                       onTap: () {
                         Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LoginPage()),
-                            (route) => false);
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LoginPage()),
+                          (route) => false,
+                        );
                       },
-                      child: Text(
+                      child: const Text(
                         "Login",
                         style: TextStyle(
-                            color: Colors.blue, fontWeight: FontWeight.bold),
-                      ))
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),
@@ -117,6 +162,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  // Signup function (preserved)
   void _signUp() async {
     setState(() {
       isSigningUp = true;
@@ -134,7 +180,6 @@ class _SignUpPageState extends State<SignUpPage> {
         return;
       }
 
-      // Basic email validation
       if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
           .hasMatch(email)) {
         setState(() {
@@ -144,7 +189,6 @@ class _SignUpPageState extends State<SignUpPage> {
         return;
       }
 
-      // Check password strength (at least 6 characters)
       if (password.length < 6) {
         setState(() {
           isSigningUp = false;
@@ -153,7 +197,6 @@ class _SignUpPageState extends State<SignUpPage> {
         return;
       }
 
-      // Attempt to create the user
       User? user = await _auth.signUpWithEmailAndPassword(email, password);
       setState(() {
         isSigningUp = false;

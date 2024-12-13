@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:path/path.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart';
-import 'package:shieldlink/features/authentication/screens/widgets/form_container_widget.dart';
 import 'package:shieldlink/features/global/toast.dart';
 
 class LoginPage extends StatefulWidget {
@@ -37,8 +35,10 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Login"),
+        title: const Text("Login"),
         backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
       ),
       body: Center(
         child: Padding(
@@ -51,21 +51,19 @@ class _LoginPageState extends State<LoginPage> {
                 width: 120,
                 height: 120,
               ),
-              Text(
+              const Text(
                 "Login",
                 style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
               ),
-              SizedBox(
-                height: 30,
-              ),
+              const SizedBox(height: 30),
+              
+              // Email Field
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: "Email",
-                  labelStyle: const TextStyle(color: Colors.blue),
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide()
-                  ),
+                  labelStyle: TextStyle(color: Colors.blue),
+                  border: UnderlineInputBorder(),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.blue),
                   ),
@@ -74,17 +72,17 @@ class _LoginPageState extends State<LoginPage> {
                 keyboardType: TextInputType.emailAddress,
                 cursorColor: Colors.blue,
               ),
-              SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
+              
+              // Password Field
               TextField(
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: "Password",
                   labelStyle: const TextStyle(color: Colors.blue),
-                  border: UnderlineInputBorder(),
-                  focusedBorder: UnderlineInputBorder(
+                  border: const UnderlineInputBorder(),
+                  focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.blue),
                   ),
                   suffixIcon: IconButton(
@@ -104,9 +102,8 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 cursorColor: Colors.blue,
               ),
-              SizedBox(
-                height: 30,
-              ),
+              const SizedBox(height: 30),
+
               GestureDetector(
                 onTap: () {
                   _signIn();
@@ -120,10 +117,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: Center(
                     child: _isSigning
-                        ? CircularProgressIndicator(
+                        ? const CircularProgressIndicator(
                             color: Colors.white,
                           )
-                        : Text(
+                        : const Text(
                             "Login",
                             style: TextStyle(
                               color: Colors.white,
@@ -133,9 +130,8 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
+
               GestureDetector(
                 onTap: () {
                   _signInWithGoogle();
@@ -150,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                      children: const [
                         Icon(
                           FontAwesomeIcons.google,
                           color: Colors.white,
@@ -168,29 +164,33 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Don't have an account?"),
-                  SizedBox(
-                    width: 5,
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => SignUpPage()),
-                        (route) => false,
-                      );
-                    },
-                    child: Text(
-                      "Sign Up",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
+                  const Text("Don't have an account?"),
+                  const SizedBox(width: 5),
+                  
+                  // Fixed Sign-Up Link
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
+                          ),
+                          (route) => false,
+                        );
+                      },
+                      child: const Text(
+                        "Sign Up",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -220,7 +220,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (user != null) {
         showToast(message: "Successfully signed in!");
-        Navigator.pushNamed(context as BuildContext, "/home");
+        Navigator.pushNamed(context, "/home");
       }
     } catch (e) {
       setState(() {
@@ -245,12 +245,11 @@ class _LoginPageState extends State<LoginPage> {
           return 'An unexpected error occurred. Please try again later.';
       }
     } else {
-      // return 'An unknown error occurred. Please try again.';
-      return ':DD';
+      return 'An unknown error occurred. Please try again later.';
     }
   }
 
-  _signInWithGoogle() async {
+  Future<void> _signInWithGoogle() async {
     final GoogleSignIn _googleSignIn = GoogleSignIn();
 
     try {
@@ -267,10 +266,10 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         await _firebaseAuth.signInWithCredential(credential);
-        Navigator.pushNamed(context as BuildContext, "/home");
+        Navigator.pushNamed(context, "/home");
       }
     } catch (e) {
       showToast(message: 'Google sign-in failed. Please try again.');
     }
   }
-}  
+}
