@@ -24,7 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold (
       body: pages[0],
-      bottomNavigationBar: _BottomNavigationBar(onItemsSelected: onItemsSelected)
+      bottomNavigationBar: _BottomNavigationBar(
+        onItemsSelected: (index) {
+          print(index);
+        },
+      ),
     );
   }
 }
