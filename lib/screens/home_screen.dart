@@ -22,9 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold (
       body: pages[0],
-      bottomNavigationBad: _BottomNavigationBar(onItemsSelected: onItemsSelected)
+      bottomNavigationBar: _BottomNavigationBar(onItemsSelected: onItemsSelected)
+    );
   }
 }
 
