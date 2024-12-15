@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
 import 'package:shieldlink/features/global/toast.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -16,7 +17,6 @@ class _SignUpPageState extends State<SignUpPage> {
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
-
   bool isSigningUp = false;
   bool _isPasswordVisible = false;
 
@@ -44,7 +44,12 @@ class _SignUpPageState extends State<SignUpPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              SvgPicture.asset(
+                "assets/logos/main logo.svg",
+                width: 120,
+                height: 120,
+              ),
+              Text(
                 "Sign Up",
                 style: TextStyle(
                   fontSize: 27,
@@ -58,7 +63,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _emailController,
                 decoration: const InputDecoration(
                   labelText: "Email",
-                  labelStyle: TextStyle(color: Colors.blue),
+                  labelStyle: TextStyle(color: Colors.grey),
                   border: UnderlineInputBorder(),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.blue),
@@ -76,7 +81,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  labelStyle: const TextStyle(color: Colors.blue),
+                  labelStyle: const TextStyle(color: Colors.grey),
                   border: const UnderlineInputBorder(),
                   focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.blue),

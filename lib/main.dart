@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
@@ -50,11 +51,28 @@ class ShieldLink extends StatelessWidget {
         ),
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
-        // '/home': (context) => HomePage(),
+        '/home': (context) => HomePage(),
       },
+      home: AuthenticationWrapper(),
     );
   }
-}      
+}   
+
+class AuthenticationWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } 
+        if (snapshot.hasData) {
+          return HomePage();
+        }
+        return SplashScreen(child: LoginPage());
+      },
+    );
       
     
       // initialRoute: '/login',
@@ -63,4 +81,4 @@ class ShieldLink extends StatelessWidget {
       //   '/success': (context) => const SuccessScreen(),
       //   '/register': (context) => const RegistrationScreen(),
       
-    
+  }

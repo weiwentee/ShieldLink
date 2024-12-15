@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
                 controller: _emailController,
                 decoration: const InputDecoration(
                   labelText: "Email",
-                  labelStyle: TextStyle(color: Colors.blue),
+                  labelStyle: TextStyle(color: Colors.grey),
                   border: UnderlineInputBorder(),
                   focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.blue),
@@ -80,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  labelStyle: const TextStyle(color: Colors.blue),
+                  labelStyle: const TextStyle(color: Colors.grey),
                   border: const UnderlineInputBorder(),
                   focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.blue),
