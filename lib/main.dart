@@ -9,8 +9,8 @@ import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart
 // import 'package:shieldlink/features/chat/screens/chat_screen.dart';
 // import 'package:shieldlink/features/chat/services/chat_services.dart';
 import 'dart:io' as io; // Import to detect platforms
-import 'package:flutter/foundation.dart'; // For kIsWeb
-
+import 'package:flutter/foundation.dart';
+import 'package:shieldlink/screens/home_screen.dart'; // For kIsWeb
 // Replace these values with your Firebase project's settings
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
@@ -45,15 +45,12 @@ class ShieldLink extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Shield Link',
+      home: AuthenticationWrapper(),
       routes: {
-        '/': (context) => SplashScreen(
-          child: LoginPage(),
-        ),
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
-        '/home': (context) => HomePage(),
+        '/home': (context) => HomeScreen(),
       },
-      home: AuthenticationWrapper(),
     );
   }
 }   
@@ -68,11 +65,13 @@ class AuthenticationWrapper extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         } 
         if (snapshot.hasData) {
-          return HomePage();
+          return HomeScreen();
         }
         return SplashScreen(child: LoginPage());
       },
     );
+  }
+}
       
     
       // initialRoute: '/login',
@@ -81,4 +80,3 @@ class AuthenticationWrapper extends StatelessWidget {
       //   '/success': (context) => const SuccessScreen(),
       //   '/register': (context) => const RegistrationScreen(),
       
-  }

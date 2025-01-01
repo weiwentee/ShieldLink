@@ -27,6 +27,7 @@ dependencies:
   # firebase_auth_web: ^5.13.5
   # firebase_storage_web: ^3.9.0
   google_fonts: ^6.2.1
+  cached_network_image: ^3.4.1
 
   # Utility Packages
   

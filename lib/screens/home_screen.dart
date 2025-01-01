@@ -1,45 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:path/path.dart';
+import 'package:shieldlink/helpers.dart';
 // import 'package:get/get.dart';
 import 'package:shieldlink/pages/messages_page.dart';
 import 'package:shieldlink/pages/notifications_page.dart';
 import 'package:shieldlink/pages/calls_page.dart';
 import 'package:shieldlink/pages/contacts_page.dart';
+import 'package:shieldlink/theme.dart';
+import 'package:shieldlink/widgets/avatar.dart';
+import 'package:shieldlink/widgets/icon_buttons.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class HomeScreen extends StatelessWidget {
+  HomeScreen({Key? key}) : super(key: key);
 
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
+  final ValueNotifier<int> pageIndex = ValueNotifier(0);
+  final ValueNotifier<String> title = ValueNotifier('Messages');
 
-class _HomeScreenState extends State<HomeScreen> {
-  final pages  = const [
+  final pages = const [
     MessagesPage(),
     NotificationsPage(),
     CallsPage(),
     ContactsPage(),
   ];
+
+  final pageTitles = const [
+    'Messages',
+    'Notifications',
+    'Calls',
+    'Contacts',
+  ];
+
+  void _onNavigationItemSelected(index) {
+    title.value = pageTitles[index];
+    pageIndex.value = index;
+  }
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold (
-      body: pages[0],
-      bottomNavigationBar: _BottomNavigationBar(
-        onItemsSelected: (index) {
-          print(index);
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: ValueListenableBuilder(
+          valueListenable: title,
+          builder: (BuildContext context, String value, _) {
+            return Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            );
+          },
+        ),
+        leadingWidth: 54,
+        leading: Align(
+          alignment: Alignment.centerRight,
+          child: IconBackground(
+            icon: Icons.search,
+            onTap: () {
+              print('TODO search');
+            },
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 24.0),
+            child: Avatar.small(url: Helpers.randomPictureUrl())
+          ),
+        ],
+      ),
+      body: ValueListenableBuilder(
+        valueListenable: pageIndex,
+        builder: (BuildContext context, int value, _) {
+          return pages[value];
         },
+      ),
+      bottomNavigationBar: _BottomNavigationBar(
+        onItemsSelected: _onNavigationItemSelected,
       ),
     );
   }
 }
 
-class _BottomNavigationBar extends StatelessWidget {
+class _BottomNavigationBar extends StatefulWidget {
   const _BottomNavigationBar({
     Key? key,
     required this.onItemsSelected,
   }) : super(key: key);
 
   final ValueChanged<int> onItemsSelected;
+
+  @override
+  __BottomNavigationBarState createState() => __BottomNavigationBarState();
+}
+
+class __BottomNavigationBarState extends State<_BottomNavigationBar> {
+  var selectedIndex = 0;
+
+  void handleItemsSelected(int index) {
+    setState(() {
+      selectedIndex = index;
+    });
+    widget.onItemsSelected(index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,27 +116,31 @@ class _BottomNavigationBar extends StatelessWidget {
         children: [
           _NavigationBarItem(
             index: 0,
-            lable: 'Messaging',
-            icon: Icons.message,              
-            OnTap: onItemsSelected,
+            lable: 'Messages',
+            icon: Icons.message, 
+            isSelected: (selectedIndex == 0),             
+            OnTap: handleItemsSelected,
           ),
           _NavigationBarItem(
             index: 1,
             lable: 'Notifications',
             icon: Icons.notifications,
-            OnTap: onItemsSelected,
+            isSelected: (selectedIndex == 1),
+            OnTap: handleItemsSelected,
           ),
           _NavigationBarItem(
             index: 2,
             lable: 'Calls',
             icon: Icons.call,
-            OnTap: onItemsSelected,
+            isSelected: (selectedIndex == 2),
+            OnTap: handleItemsSelected,
           ),
           _NavigationBarItem(
             index: 3,
             lable: 'Contacts',
             icon: Icons.contacts,
-            OnTap: onItemsSelected,
+            isSelected: (selectedIndex == 3),
+            OnTap: handleItemsSelected,
           ),
         ],
       ),
@@ -85,18 +154,20 @@ class _NavigationBarItem extends StatelessWidget {
     required this.index,
     required this.lable,
     required this.icon,
+    this.isSelected = false,
     required this.OnTap,
   }) : super(key: key);
-
 
   final int index;
   final String lable;
   final IconData icon;
+  final bool isSelected;
   final ValueChanged<int> OnTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () {
         OnTap(index);
       },
@@ -105,9 +176,24 @@ class _NavigationBarItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20),
-            const SizedBox(height: 8),
-            Text(lable, style: const TextStyle(fontSize: 11),),
+            Icon(
+              icon, 
+              size: 20,
+              color: isSelected ? AppColors.secondary : null
+            ),
+            const SizedBox(
+              height: 8
+            ),
+            Text(
+              lable, 
+              style: isSelected
+                ? const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.secondary,
+                )
+              : const TextStyle(fontSize: 11),
+            ),
           ],
         ),
       )
