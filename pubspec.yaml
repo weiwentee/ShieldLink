@@ -28,6 +28,9 @@ dependencies:
   # firebase_storage_web: ^3.9.0
   google_fonts: ^6.2.1
   cached_network_image: ^3.4.1
+  faker: ^2.2.0
+  meta: ^1.7.0
+  jiffy: ^6.3.2
 
   # Utility Packages
   
