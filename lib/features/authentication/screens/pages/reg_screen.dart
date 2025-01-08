@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
@@ -15,6 +16,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final FirebaseAuthService _auth = FirebaseAuthService();
 
+  TextEditingController _usernameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   bool isSigningUp = false;
@@ -22,6 +24,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -57,6 +60,23 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
               const SizedBox(height: 30),
+
+              // Username Text Field
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: "Username",
+                  labelStyle: TextStyle(color: Colors.grey),
+                  border: UnderlineInputBorder(),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                ),
+                cursorColor: Colors.blue,
+              ),
+              const SizedBox(height: 10),
+
 
               // Email Text Field
               TextField(
@@ -173,11 +193,12 @@ class _SignUpPageState extends State<SignUpPage> {
       isSigningUp = true;
     });
 
+    String username = _usernameController.text;
     String email = _emailController.text;
     String password = _passwordController.text;
 
     try {
-      if (email.isEmpty || password.isEmpty) {
+      if (username.isEmpty || password.isEmpty) {
         setState(() {
           isSigningUp = false;
         });
@@ -208,8 +229,17 @@ class _SignUpPageState extends State<SignUpPage> {
       });
 
       if (user != null) {
+        print("User UID: ${user.uid}");
+        print("Username: $username");
+
+        // Save the userna  me in Firestore
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'username': username,
+          'email': email,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
         showToast(message: "Account created successfully.");
-        Navigator.pushNamed(context, "/home");
+        // Navigator.pushNamed(context, "/home");
       }
     } catch (e) {
       setState(() {
