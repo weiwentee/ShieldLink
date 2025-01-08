@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:shieldlink/app.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
 import 'package:shieldlink/features/authentication/screens/splash_screen/splash_screen.dart';
 // import 'package:shieldlink/features/authentication/screens/temp_success_screen.dart';
@@ -10,7 +11,9 @@ import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart
 // import 'package:shieldlink/features/chat/services/chat_services.dart';
 import 'dart:io' as io; // Import to detect platforms
 import 'package:flutter/foundation.dart';
-import 'package:shieldlink/screens/home_screen.dart'; // For kIsWeb
+import 'package:shieldlink/screens/select_user_screen.dart';
+import 'package:shieldlink/screens/home_screen.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart'; // For kIsWeb
 // Replace these values with your Firebase project's settings
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
@@ -34,22 +37,35 @@ Future main() async {
 
     await Firebase.initializeApp();
   }
-
-  runApp(const ShieldLink());
+  final client = StreamChatClient(streamKey);
+  runApp(
+    ShieldLink(
+      client: client,
+      ),
+    );
 }
 
 class ShieldLink extends StatelessWidget {
-  const ShieldLink({super.key});
+  const ShieldLink({super.key, required this.client});
+
+  final StreamChatClient client;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Shield Link',
       home: AuthenticationWrapper(),
+      builder: (context, child) {
+        return StreamChatCore(
+          client: client,
+          child: child!,
+        );
+      },
       routes: {
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
         '/home': (context) => HomeScreen(),
+        '/selectUser': (context) => SelectUserScreen(),
       },
     );
   }
@@ -58,25 +74,17 @@ class ShieldLink extends StatelessWidget {
 class AuthenticationWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+    return StreamBuilder<firebase_auth.User?>(
+      stream: firebase_auth.FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
         } 
         if (snapshot.hasData) {
-          return HomeScreen();
+          return SelectUserScreen();
         }
         return SplashScreen(child: LoginPage());
       },
     );
   }
 }
-      
-    
-      // initialRoute: '/login',
-      // routes: {
-      //   '/login': (context) => const LoginScreen(),
-      //   '/success': (context) => const SuccessScreen(),
-      //   '/register': (context) => const RegistrationScreen(),
-      

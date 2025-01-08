@@ -8,10 +8,13 @@ import 'package:shieldlink/pages/messages_page.dart';
 import 'package:shieldlink/pages/notifications_page.dart';
 import 'package:shieldlink/pages/calls_page.dart';
 import 'package:shieldlink/pages/contacts_page.dart';
+import 'package:shieldlink/screens/screens.dart';
+import 'package:shieldlink/screens/select_user_screen.dart';
 import 'package:shieldlink/theme.dart';
 import 'package:shieldlink/widgets/avatar.dart';
 import 'package:shieldlink/widgets/glowing_action_button.dart';
 import 'package:shieldlink/widgets/icon_buttons.dart';
+import 'package:shieldlink/app.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -69,9 +72,12 @@ class HomeScreen extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 24.0),
-            child: Avatar.small(url: Helpers.randomPictureUrl())
-          ),
-        ],
+            child: Avatar.small(url: context.currentUserImage,
+            onTap: () {
+              Navigator.of(context).push(ProfileScreen.route);
+            },),
+          )
+        ]
       ),
       body: ValueListenableBuilder(
         valueListenable: pageIndex,
