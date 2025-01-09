@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shieldlink/screens/select_user_screen.dart';
 import 'package:shieldlink/screens/home_screen.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart'; // For kIsWeb
+import 'package:dio/dio.dart'; // For HTTP requests
 // Replace these values with your Firebase project's settings
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
@@ -25,6 +26,7 @@ const firebaseWebConfig = FirebaseOptions(
   measurementId: "G-3Y3BYT6G83"
 );
 
+const backendUrl = 'http://localhost:3000'; // Update with your deployed backend URL
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -54,7 +56,7 @@ class ShieldLink extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Shield Link',
-      home: AuthenticationWrapper(),
+      home: AuthenticationWrapper(client: client),
       builder: (context, child) {
         return StreamChatCore(
           client: client,
@@ -72,19 +74,66 @@ class ShieldLink extends StatelessWidget {
 }   
 
 class AuthenticationWrapper extends StatelessWidget {
+  final StreamChatClient client;
+  
+  const AuthenticationWrapper({super.key, required this.client});
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<firebase_auth.User?>(
       stream: firebase_auth.FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } 
         if (snapshot.hasData) {
-          return SelectUserScreen();
+          // Connect the user to Stream
+          final user = snapshot.data!;
+          return FutureBuilder(
+            future: _connectStreamUser(client, user),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return HomeScreen();
+            },
+          );
         }
         return SplashScreen(child: LoginPage());
       },
     );
+  }
+
+  Future<void> _connectStreamUser(
+      StreamChatClient client, firebase_auth.User user) async {
+    final streamId = user.uid; 
+    try{
+      // fetch the Stream token from the backend
+      final dio = Dio();
+      final response = await dio.post(
+        '$backendUrl/generate-token',
+        data: {'userId': streamId},
+      );
+
+      if (response.statusCode == 200) {
+        final token = response.data['token'];
+        
+        // Connect the user to Stream Chat
+        await client.connectUser(
+          User(
+            id: streamId,
+            extraData: {
+              'name': user.displayName ?? user.email ?? 'Anonymous',
+            },
+          ),
+          token,
+        );
+      } else {
+        throw Exception('Failed to fetch token from backend');
+      }
+    } catch (e) {
+      print('Error connecting to Stream: $e');
+      throw Exception('Stream Chat connection failed');
+    }
   }
 }

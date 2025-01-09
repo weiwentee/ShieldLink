@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:shieldlink/app.dart';
+// import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
 import 'package:shieldlink/features/global/toast.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shieldlink/screens/home_screen.dart';
+import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
+import 'package:dio/dio.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -14,13 +18,14 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final FirebaseAuthService _auth = FirebaseAuthService();
-
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool isSigningUp = false;
   bool _isPasswordVisible = false;
+
+  final String backendUrl = 'http://localhost:3000'; // Update with your deployed backend URL
 
   @override
   void dispose() {
@@ -188,84 +193,95 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   // Signup function (preserved)
-  void _signUp() async {
+  Future<void> _signUp() async {
     setState(() {
       isSigningUp = true;
     });
 
-    String username = _usernameController.text;
-    String email = _emailController.text;
+    String username = _usernameController.text.trim();
+    String email = _emailController.text.trim();
     String password = _passwordController.text;
 
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+      showToast(message: "All fields are required.");
+      setState(() {
+        isSigningUp = false;
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      showToast(message: "Password must be at least 6 characters.");
+      setState(() {
+        isSigningUp = false;
+      });
+      return;
+    }
+
+    if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+        .hasMatch(email)) {
+      setState(() {
+        isSigningUp = false;
+      });
+      showToast(message: "Please enter a valid email address.");
+      return;
+    }
+
     try {
-      if (username.isEmpty || password.isEmpty) {
-        setState(() {
-          isSigningUp = false;
-        });
-        showToast(message: "All fields are required.");
-        return;
-      }
+      // Firebase Authentication
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-      if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-          .hasMatch(email)) {
-        setState(() {
-          isSigningUp = false;
-        });
-        showToast(message: "Please enter a valid email address.");
-        return;
-      }
+      final user = userCredential.user;
+      if (user == null) throw Exception('User creation failed');
 
-      if (password.length < 6) {
-        setState(() {
-          isSigningUp = false;
-        });
-        showToast(message: "Password must be at least 6 characters.");
-        return;
-      }
-
-      User? user = await _auth.signUpWithEmailAndPassword(email, password);
-      setState(() {
-        isSigningUp = false;
+      // Save to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'username': username,
+        'email': email,
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
-      if (user != null) {
-        print("User UID: ${user.uid}");
-        print("Username: $username");
+      // Connect user to Stream chat
+      await _createStreamChatUser(user.uid, username);
 
-        // Save the userna  me in Firestore
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'username': username,
-          'email': email,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-        showToast(message: "Account created successfully.");
-        // Navigator.pushNamed(context, "/home");
-      }
+      showToast(message: "Account created successfully.");
+      Navigator.pushNamed(context, "/home");
     } catch (e) {
+      showToast(message: "Sign up failed: $e");
+    } finally {
       setState(() {
         isSigningUp = false;
       });
-      String errorMessage = _handleSignUpError(e);
-      showToast(message: errorMessage);
     }
   }
 
-  String _handleSignUpError(dynamic error) {
-    if (error is FirebaseAuthException) {
-      switch (error.code) {
-        case 'email-already-in-use':
-          return 'The email address is already in use by another account.';
-        case 'invalid-email':
-          return 'The email address is not valid. Please check it again.';
-        case 'weak-password':
-          return 'Password is too weak. Please choose a stronger password.';
-        default:
-          // return 'An unexpected error occurred. Please try again later.';
-          return ':D';
+  Future<void> _createStreamChatUser(String streamId, String username) async {
+    try {
+      // fetch the Stream token from the backend
+      final dio = Dio();
+      final response = await dio.post(
+        '$backendUrl/generate-token',
+        data: {'userId': username},
+      );
+
+      if (response.statusCode == 200) {
+        final token = response.data['token'];
+
+        final client = StreamChatCore.of(context).client;
+        await client.connectUser(
+          User(id: streamId, extraData: {'name': username}),
+          token,
+        );
+        logger.i('User connected to Stream Chat successfully.');
+      } else {
+        throw Exception('Failed to fetch token from backend');
       }
-    } else {
-      // return 'An unknown error occurred. Please try again later.';
-      return ':DD';
+    } catch (e) {
+      logger.e('Error connecting to Stream: $e');
+      throw e;
     }
   }
 }
