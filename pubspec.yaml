@@ -48,6 +48,7 @@ dependencies:
   passwordfield: ^0.2.0
   stream_chat_flutter_core: ^8.3.0
   logger: ^2.5.0
+  dio: ^5.7.0
 
   # Product Specific
 
