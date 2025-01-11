@@ -31,6 +31,10 @@ dependencies:
   faker: ^2.2.0
   meta: ^1.7.0
   jiffy: ^6.3.2
+  firebase_messaging: ^15.2.0
+  js:  ^0.6.7
+  googleapis_auth: ^1.6.0
+  http: ^1.2.2
 
   # Utility Packages
   

@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shieldlink/screens/select_user_screen.dart';
 import 'package:shieldlink/screens/home_screen.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart'; // For kIsWeb
+
 // Replace these values with your Firebase project's settings
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
@@ -32,17 +33,17 @@ Future main() async {
     // Firebase for Web
     await Firebase.initializeApp(options: firebaseWebConfig);
   } 
-  
   else if (io.Platform.isAndroid) {
-
+    // Firebase for Android
     await Firebase.initializeApp();
   }
-  final client = StreamChatClient(streamKey);
+
+  final client = StreamChatClient('your_stream_key_here'); // Replace with your StreamChat key
   runApp(
     ShieldLink(
       client: client,
-      ),
-    );
+    ),
+  );
 }
 
 class ShieldLink extends StatelessWidget {
