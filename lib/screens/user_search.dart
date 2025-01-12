@@ -19,7 +19,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     if (query.isEmpty) return;
 
     final response = await widget.client.queryUsers(
-      filter: Filter.autoComplete('name', query),
+      filter: Filter.autoComplete('id', query),
       pagination: PaginationParams(limit: 10),
     );
 
