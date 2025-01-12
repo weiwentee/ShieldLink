@@ -1,4 +1,5 @@
 import 'package:shieldlink/app.dart';
+import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
 import 'package:shieldlink/features/authentication/screens/splash_screen/splash_screen.dart';
 import 'package:shieldlink/screens/screens.dart';
 import 'package:shieldlink/widgets/widgets.dart';
@@ -60,7 +61,10 @@ class __SignOutButtonState extends State<_SignOutButton> {
     try {
       await StreamChatCore.of(context).client.disconnectUser();
 
-      Navigator.of(context).push(SelectUserScreen.route);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const SplashScreen(child: LoginPage())),
+        (route) => false,
+      );
     } on Exception catch (e, st) {
       logger.e('Could not sign out', error: e, stackTrace: st);
       setState(() {

@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart';
 import 'package:shieldlink/helpers.dart';
-// import 'package:get/get.dart';
 import 'package:shieldlink/pages/messages_page.dart';
 import 'package:shieldlink/pages/notifications_page.dart';
 import 'package:shieldlink/pages/calls_page.dart';
 import 'package:shieldlink/pages/contacts_page.dart';
 import 'package:shieldlink/screens/screens.dart';
-import 'package:shieldlink/screens/select_user_screen.dart';
+import 'package:shieldlink/screens/user_search.dart';
 import 'package:shieldlink/theme.dart';
 import 'package:shieldlink/widgets/avatar.dart';
 import 'package:shieldlink/widgets/glowing_action_button.dart';
 import 'package:shieldlink/widgets/icon_buttons.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:shieldlink/app.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -22,12 +22,17 @@ class HomeScreen extends StatelessWidget {
   final ValueNotifier<int> pageIndex = ValueNotifier(0);
   final ValueNotifier<String> title = ValueNotifier('Messages');
 
-  final pages = const [
-    MessagesPage(),
-    NotificationsPage(),
-    CallsPage(),
-    ContactsPage(),
-  ];
+  List<Widget> _buildPages(BuildContext context) {
+    final client = StreamChat.of(context).client;
+    final channelsList = client.state.channels.values.toList();
+
+    return [
+      MessagesPage(channels: channelsList),
+      NotificationsPage(),
+      CallsPage(),
+      ContactsPage(),
+    ];
+  }
 
   final pageTitles = const [
     'Messages',
@@ -82,7 +87,7 @@ class HomeScreen extends StatelessWidget {
       body: ValueListenableBuilder(
         valueListenable: pageIndex,
         builder: (BuildContext context, int value, _) {
-          return pages[value];
+          return _buildPages(context)[value];
         },
       ),
       bottomNavigationBar: _BottomNavigationBar(
@@ -198,6 +203,12 @@ class __BottomNavigationBarState extends State<_BottomNavigationBar> {
                 child:GlowingActionButton(
                   color: AppColors.secondary, 
                   icon: CupertinoIcons.add, onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserSearchScreen(client: StreamChat.of(context).client),
+                      ),
+                    );
                     print('TODO add');
                   },
                 ),
