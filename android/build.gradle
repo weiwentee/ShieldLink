@@ -1,12 +1,14 @@
 // Root level build.gradle (located at the root of the project)
 buildscript {
+    ext.kotlin_version = '2.1.0'
     repositories {
         google()  // Make sure Google repository is here
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.4' // Use the appropriate version
+        classpath 'com.android.tools.build:gradle:8.3.0' // Use the appropriate version
         classpath 'com.google.gms:google-services:4.4.2' // Firebase plugin
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -27,4 +29,16 @@ subprojects {
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
+}
+
+subprojects{
+    tasks.withType(JavaCompile).configureEach {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
 }
