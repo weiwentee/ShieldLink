@@ -16,7 +16,9 @@ import 'package:shieldlink/screens/home_screen.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart'; // For StreamChatLocalizations
 import 'package:stream_chat_localizations/stream_chat_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'dart:io' as io; // Import to detect platforms
 import 'package:dio/dio.dart'; // For HTTP requests
 // Replace these values with your Firebase project's settings
 const firebaseWebConfig = FirebaseOptions(
