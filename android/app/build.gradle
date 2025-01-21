@@ -19,12 +19,12 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     defaultConfig {
         applicationId = "com.example.shieldlink"
-        minSdkVersion = 23
+        minSdkVersion = 19
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
