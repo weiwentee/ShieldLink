@@ -1,37 +1,72 @@
+// This screen handles the messaging interfcae
+
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import 'package:shieldlink/widgets/SensitiveMessageWidget.dart';
 
 class ChannelPage extends StatelessWidget {
-  final VoidCallback onBack;
-
-  const ChannelPage({Key? key, required this.onBack}) : super(key: key);
+  const ChannelPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Chat'),
-        backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            onBack();
-            Navigator.pop(context);
-          },
-        ),
-      ),
+      appBar: const StreamChannelHeader(),
       body: Column(
-        children: [
+        children: <Widget>[
           Expanded(
             child: StreamMessageListView(
-            messageBuilder: (context, details, messages, defaultWidget) {
-            return SensitiveMessageWidget(message: details.message);
-            },
-          ),
+              threadBuilder: (_, parentMessage) => ThreadPage(
+                parent: parentMessage!,
+              ),
+            ),
           ),
           const StreamMessageInput(),
+        ],
+      ),
+    );
+  }
+}
+
+class ThreadPage extends StatefulWidget {
+  const ThreadPage({
+    Key? key,
+    required this.parent,
+  }) : super(key: key);
+
+  final Message parent;
+
+  @override
+  State<ThreadPage> createState() => _ThreadPageState();
+}
+
+class _ThreadPageState extends State<ThreadPage> {
+  late final _controller = StreamMessageInputController(
+    message: Message(parentId: widget.parent.id),
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: StreamThreadHeader(
+        parent: widget.parent,
+      ),
+      body: Column(
+        children: <Widget>[
+          Expanded(
+            child: StreamMessageListView(
+              parentMessage: widget.parent,
+            ),
+          ),
+          StreamMessageInput(
+            messageInputController: _controller,
+          ),
         ],
       ),
     );

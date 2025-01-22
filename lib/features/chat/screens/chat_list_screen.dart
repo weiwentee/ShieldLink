@@ -1,3 +1,5 @@
+// This screen will display a list of chats
+// chat_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
@@ -6,7 +8,9 @@ import 'settings_page.dart';
 import 'profile_page.dart';
 
 class ChannelListPage extends StatefulWidget {
-  const ChannelListPage({Key? key}) : super(key: key);
+  const ChannelListPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<ChannelListPage> createState() => _ChannelListPageState();
@@ -29,17 +33,9 @@ class _ChannelListPageState extends State<ChannelListPage> {
     super.dispose();
   }
 
-  void _reloadChannels() {
-    setState(() {
-      // Reload the controller to fetch the latest channels
-      _listController.doInitialLoad();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Set background color to white
       appBar: AppBar(
         title: const Text('ShieldLink Chats'),
         backgroundColor: Colors.blue,
@@ -82,7 +78,7 @@ class _ChannelListPageState extends State<ChannelListPage> {
               builder: (context) {
                 return StreamChannel(
                   channel: channel,
-                  child: ChannelPage(onBack: _reloadChannels), // Pass the callback
+                  child: const ChannelPage(),
                 );
               },
             ),
@@ -111,7 +107,7 @@ class _ChannelListPageState extends State<ChannelListPage> {
           MaterialPageRoute(
             builder: (_) => StreamChannel(
               channel: channel,
-              child: ChannelPage(onBack: _reloadChannels),
+              child: const ChannelPage(),
             ),
           ),
         );
