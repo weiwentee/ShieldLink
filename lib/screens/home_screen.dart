@@ -1,37 +1,68 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:path/path.dart';
-import 'package:shieldlink/helpers.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:shieldlink/pages/messages_page.dart';
 import 'package:shieldlink/pages/notifications_page.dart';
 import 'package:shieldlink/pages/calls_page.dart';
 import 'package:shieldlink/pages/contacts_page.dart';
-import 'package:shieldlink/screens/screens.dart';
+import 'package:shieldlink/widgets/icon_buttons.dart';
+import 'package:shieldlink/screens/profile_screen.dart';
+import 'package:shieldlink/widgets/glowing_action_button.dart';
+import 'package:shieldlink/widgets/avatar.dart';
 import 'package:shieldlink/screens/user_search.dart';
 import 'package:shieldlink/theme.dart';
-import 'package:shieldlink/widgets/avatar.dart';
-import 'package:shieldlink/widgets/glowing_action_button.dart';
-import 'package:shieldlink/widgets/icon_buttons.dart';
-import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import 'package:shieldlink/app.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final ValueNotifier<int> pageIndex = ValueNotifier(0);
   final ValueNotifier<String> title = ValueNotifier('Messages');
+  List<Channel> channelsList = [];
 
-  List<Widget> _buildPages(BuildContext context) {
+  @override
+  void initState() {
+    super.initState();
+    _fetchChannels();
+    
     final client = StreamChat.of(context).client;
-    final channelsList = client.state.channels.values.toList();
+    
+    // Listen for channel updates in real time
+    client.on(EventType.channelUpdated).listen((_) {
+      _fetchChannels();
+    });
+    client.on(EventType.notificationMessageNew).listen((_) {
+      _fetchChannels();
+    });
+  }
 
-    return [
-      MessagesPage(channels: channelsList),
-      NotificationsPage(),
-      CallsPage(),
-      ContactsPage(),
-    ];
+  Future<void> _fetchChannels() async {
+    final client = StreamChat.of(context).client;
+    final filter = Filter.in_('members', [StreamChat.of(context).currentUser!.id]);
+    final sort = [SortOption<ChannelState>('last_message_at')];
+
+    try {
+      final channels = await client.queryChannels(
+        filter: filter,
+        channelStateSort: sort,
+        watch: true,
+        state: true,
+      ).toList();
+
+      setState(() {
+        channelsList = channels.expand((channelList) => channelList).toList();
+      });
+    } catch (e) {
+      print('Error fetching channels: $e');
+    }
+  }
+
+  void _onNavigationItemSelected(int index) {
+    title.value = pageTitles[index];
+    pageIndex.value = index;
   }
 
   final pageTitles = const [
@@ -41,11 +72,15 @@ class HomeScreen extends StatelessWidget {
     'Contacts',
   ];
 
-  void _onNavigationItemSelected(index) {
-    title.value = pageTitles[index];
-    pageIndex.value = index;
+  List<Widget> _buildPages(BuildContext context) {
+    return [
+      MessagesPage(channels: channelsList),
+      NotificationsPage(),
+      CallsPage(),
+      ContactsPage(),
+    ];
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,12 +112,15 @@ class HomeScreen extends StatelessWidget {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 24.0),
-            child: Avatar.small(url: context.currentUserImage,
-            onTap: () {
-              Navigator.of(context).push(ProfileScreen.route);
-            },),
-          )
-        ]
+            child: Avatar.small(
+              url: StreamChat.of(context).currentUser?.image,
+              onTap: () {
+                // Navigate to the profile screen
+                Navigator.of(context).push(ProfileScreen.route);
+              },
+            ),
+          ),
+        ],
       ),
       body: ValueListenableBuilder(
         valueListenable: pageIndex,
@@ -92,60 +130,8 @@ class HomeScreen extends StatelessWidget {
       ),
       bottomNavigationBar: _BottomNavigationBar(
         onItemsSelected: _onNavigationItemSelected,
+        onRefreshChannels: _fetchChannels,
       ),
-    );
-  }
-}
-
-class _NavigationBarItem extends StatelessWidget {
-  const _NavigationBarItem({
-    Key? key, 
-    required this.index,
-    required this.lable,
-    required this.icon,
-    this.isSelected = false,
-    required this.OnTap,
-  }) : super(key: key);
-
-  final int index;
-  final String lable;
-  final IconData icon;
-  final bool isSelected;
-  final ValueChanged<int> OnTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        OnTap(index);
-      },
-      child: SizedBox(
-        width: 70,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon, 
-              size: 20,
-              color: isSelected ? AppColors.secondary : null
-            ),
-            const SizedBox(
-              height: 8
-            ),
-            Text(
-              lable, 
-              style: isSelected
-                ? const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.secondary,
-                )
-              : const TextStyle(fontSize: 11),
-            ),
-          ],
-        ),
-      )
     );
   }
 }
@@ -154,9 +140,11 @@ class _BottomNavigationBar extends StatefulWidget {
   const _BottomNavigationBar({
     Key? key,
     required this.onItemsSelected,
+    required this.onRefreshChannels,
   }) : super(key: key);
 
   final ValueChanged<int> onItemsSelected;
+  final VoidCallback onRefreshChannels;
 
   @override
   __BottomNavigationBarState createState() => __BottomNavigationBarState();
@@ -187,48 +175,103 @@ class __BottomNavigationBarState extends State<_BottomNavigationBar> {
               _NavigationBarItem(
                 index: 0,
                 lable: 'Messages',
-                icon: CupertinoIcons.bubble_left_bubble_right_fill, 
-                isSelected: (selectedIndex == 0),             
+                icon: Icons.message,
+                isSelected: selectedIndex == 0,
                 OnTap: handleItemsSelected,
               ),
               _NavigationBarItem(
                 index: 1,
                 lable: 'Notifications',
-                icon: CupertinoIcons.bell_solid,
-                isSelected: (selectedIndex == 1),
+                icon: Icons.notifications,
+                isSelected: selectedIndex == 1,
                 OnTap: handleItemsSelected,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child:GlowingActionButton(
-                  color: AppColors.secondary, 
-                  icon: CupertinoIcons.add, onPressed: () {
+                child: GlowingActionButton(
+                  color: AppColors.secondary,
+                  icon: Icons.add,
+                  onPressed: () {
+                    // Navigate to user search screen
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => UserSearchScreen(client: StreamChat.of(context).client),
+                        builder: (context) => UserSearchScreen(
+                          client: StreamChat.of(context).client,
+                        ),
                       ),
                     );
-                    print('TODO add');
+
+                    // Refresh the channels list
+                    widget.onRefreshChannels();
                   },
                 ),
               ),
               _NavigationBarItem(
                 index: 2,
                 lable: 'Calls',
-                icon: CupertinoIcons.phone_fill,
-                isSelected: (selectedIndex == 2),
+                icon: Icons.call,
+                isSelected: selectedIndex == 2,
                 OnTap: handleItemsSelected,
               ),
               _NavigationBarItem(
                 index: 3,
                 lable: 'Contacts',
-                icon: CupertinoIcons.person_2_fill,
-                isSelected: (selectedIndex == 3),
+                icon: Icons.contacts,
+                isSelected: selectedIndex == 3,
                 OnTap: handleItemsSelected,
               ),
             ],
-          )
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavigationBarItem extends StatelessWidget {
+  const _NavigationBarItem({
+    Key? key,
+    required this.index,
+    required this.lable,
+    required this.icon,
+    this.isSelected = false,
+    required this.OnTap,
+  }) : super(key: key);
+
+  final int index;
+  final String lable;
+  final IconData icon;
+  final bool isSelected;
+  final ValueChanged<int> OnTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        OnTap(index);
+      },
+      child: SizedBox(
+        width: 70,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? AppColors.secondary : null,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              lable,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? AppColors.secondary : null,
+              ),
+            ),
+          ],
         ),
       ),
     );

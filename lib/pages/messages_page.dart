@@ -79,24 +79,40 @@ class _MessagesPageState extends State<MessagesPage> {
       itemBuilder: (context, index) {
         final channel = widget.channels[index];
 
-        return StreamBuilder<List<Message>>(
-          stream: channel.state?.messagesStream,
+        return StreamBuilder<ChannelState>(
+          stream: channel.state?.channelStateStream,
           builder: (context, snapshot) {
             String lastMessage = 'No messages yet.';
-            if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-              final message = snapshot.data!.last;
-              lastMessage = message.text ?? 'Attachment';
+            if (snapshot.hasData &&
+                snapshot.data != null &&
+                snapshot.data!.messages != null &&
+                snapshot.data!.messages!.isNotEmpty) {
+              final message = snapshot.data!.messages?.last;
+              lastMessage = message?.text ?? 'Attachment';
             }
+
+            // Extract the recipient's name
+            final currentUser = StreamChat.of(context).currentUser;
+            final recipient = channel.state?.members
+                ?.firstWhere(
+                  (member) => member.user?.id != currentUser?.id,
+                  orElse: () => Member(user: User(id: 'default', name: 'Unknown')),
+                )
+                ?.user;
+
+            final channelName = recipient?.name ?? 'Unnamed Channel';
 
             return ListTile(
               leading: CircleAvatar(
                 backgroundColor: Colors.blue,
                 child: Text(
-                  (channel.name ?? 'U').substring(0, 1).toUpperCase(),
+                  channelName.isNotEmpty
+                      ? channelName[0].toUpperCase()
+                      : 'U',
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
-              title: Text(channel.name ?? 'Unnamed Channel'),
+              title: Text(channelName),
               subtitle: Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
