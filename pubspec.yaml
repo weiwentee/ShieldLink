@@ -20,6 +20,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   stream_chat_localizations: ^8.2.0
   stream_chat_flutter: ^8.3.0
+  shared_preferences: ^2.0.8
   firebase_core: ^3.8.1 
   cloud_firestore: ^5.6.1
   firebase_auth: ^5.3.4
@@ -27,6 +28,7 @@ dependencies:
   fluttertoast: ^8.2.2
   font_awesome_flutter: ^10.8.0
   google_sign_in: ^6.2.2
+  photo_manager: ^3.6.3
   # firebase_auth_web: ^5.13.5
   # firebase_storage_web: ^3.9.0
   google_fonts: ^6.2.1
@@ -122,6 +124,3 @@ flutter:
         - asset: assets/fonts/Poppins-ExtraLightItalic.ttf
           weight: 200
           style: italic
-
-dependency_overrides:
-  desktop_drop: ^0.0.1
