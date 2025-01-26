@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 30),
-              
+
               // Email Field
               TextField(
                 controller: _emailController,
@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
                 cursorColor: Colors.blue,
               ),
               const SizedBox(height: 10),
-              
+
               // Password Field
               TextField(
                 controller: _passwordController,
@@ -147,9 +147,11 @@ class _LoginPageState extends State<LoginPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
-                        Icon(
-                          FontAwesomeIcons.google,
-                          color: Colors.white,
+                        Expanded(
+                          child: Icon(
+                            FontAwesomeIcons.google,
+                            color: Colors.white,
+                          ),
                         ),
                         SizedBox(width: 5),
                         Text(
@@ -171,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const Text("Don't have an account?"),
                   const SizedBox(width: 5),
-                  
+
                   // Fixed Sign-Up Link
                   MouseRegion(
                     cursor: SystemMouseCursors.click,

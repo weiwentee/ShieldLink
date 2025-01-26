@@ -1,22 +1,6 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
@@ -33,13 +17,14 @@
   <title>shieldlink</title>
   <link rel="manifest" href="manifest.json">
 </head>
-
 <body>
   <script src="flutter_bootstrap.js" async></script>
   <script type="module">
     // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-messaging.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+    import { getMessaging,getToken } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-messaging.js";
+
+    
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -54,26 +39,30 @@
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const messaging = getMessaging(app);
+    const messaging = getMessaging();
+    
 
-    navigator.serviceWorker.register("sw.js").then(registration => {
-
-      getToken(messaging, { serviceWorkerRegistration: registration, vapidKey: 'BLnXHMztzCh3vCUVJ4BDqBobtHx6DTy1sgsI7suXJZ1THeJy8Kzod-VW42XxKjp2gsuvJ0BIuXScsN68R8fi0Y0' }).then((currentToken) => {
-
-        if (currentToken) {
-          console.log("Token is:", currentToken); 
-          // Send the token to Flutter Web
-          window.postMessage({ type: "FCM_TOKEN", token: currentToken }, "*");
-        } else {
-          console.log('No registration token available.');
-        }
-      }).catch((err) => {
-        console.log('An error occurred while retrieving token. ', err);
+    navigator.serviceWorker.register("firebase-messaging-sw.js")
+      .then(registration => {
+        // Retrieve the token
+        getToken(messaging, { 
+          serviceWorkerRegistration: registration, 
+          vapidKey: 'BLnXHMztzCh3vCUVJ4BDqBobtHx6DTy1sgsI7suXJZ1THeJy8Kzod-VW42XxKjp2gsuvJ0BIuXScsN68R8fi0Y0' 
+        }).then((currentToken) => {
+          if (currentToken) {
+            console.log("Token is:", currentToken); 
+            // Send the token to Flutter Web
+            window.postMessage({ type: "FCM_TOKEN", token: currentToken }, "*");
+          } else {
+            console.log('No registration token available.');
+          }
+        }).catch((err) => {
+          console.log('An error occurred while retrieving token: ', err);
+        });
+      })
+      .catch((error) => {
+        console.error("Service Worker registration failed: ", error);
       });
-
-    });
-
   </script>
 </body>
-
 </html>
