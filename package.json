@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "canvaskit-js": "^2.1.4",
     "firebase": "^11.0.2"
   }
 }
