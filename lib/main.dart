@@ -11,6 +11,7 @@ import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart
 // import 'package:shieldlink/features/chat/services/chat_services.dart';
 import 'dart:io' as io; // Import to detect platforms
 import 'package:flutter/foundation.dart';
+import 'package:shieldlink/features/security/theft_detection.dart';
 import 'package:shieldlink/screens/user_search.dart';
 import 'package:shieldlink/screens/home_screen.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
@@ -119,6 +120,7 @@ class AuthenticationWrapper extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
               return SessionTimeOutListener( // Wrap HomeScreen with SessionTimeOutListener
+                // child: TheftDetection(child: HomeScreen()),
                 child: HomeScreen(),
                 duration: Duration(minutes: 5), // Set your session timeout duration
                 // duration: Duration(minutes: 1), // For demonstration

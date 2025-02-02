@@ -54,6 +54,7 @@ dependencies:
   stream_chat_flutter_core: ^8.3.0
   logger: ^2.5.0
   dio: ^5.7.0
+  sensors_plus: ^6.1.1
 
   # Product Specific
 
