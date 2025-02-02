@@ -19,6 +19,14 @@ import 'package:stream_chat_localizations/stream_chat_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dio/dio.dart'; // For HTTP requests
 // Replace these values with your Firebase project's settings
+import 'package:shieldlink/screens/home_screen.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
+import 'dart:io' as io;
+import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
+import 'package:shieldlink/utils/session_listener.dart'; // Import your SessionTimeOutListener
+
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
   authDomain: "shieldlink-b052c.firebaseapp.com",
@@ -30,29 +38,26 @@ const firebaseWebConfig = FirebaseOptions(
 );
 
 const streamApiKey = 'qg3xperd8afd';
-const backendUrl = 'http://localhost:3000'; // Update with your deployed backend URL
+const backendUrl = 'http://localhost:3000';
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (kIsWeb) {
-    // Firebase for Web
     await Firebase.initializeApp(options: firebaseWebConfig);
-  } 
-  else if (io.Platform.isAndroid) {
-    // Firebase for Android
+  } else if (io.Platform.isAndroid) {
     await Firebase.initializeApp();
   }
 
-  // Initialize Stream Chat Client
   final client = StreamChatClient(
-    streamApiKey, 
-    logLevel: Level.INFO
-  ); // Replace with your StreamChat key
+    streamApiKey,
+    logLevel: Level.INFO,
+  );
 
-  runApp(ShieldLink(client: client));
+  runApp(ShieldLink(client: client)); // Running ShieldLink widget
 }
 
-class ShieldLink extends StatelessWidget { 
+class ShieldLink extends StatelessWidget {
   final StreamChatClient client;
 
   const ShieldLink({Key? key, required this.client}) : super(key: key);
@@ -79,7 +84,7 @@ class ShieldLink extends StatelessWidget {
           child: StreamChatCore(client: client, child: child!),
         );
       },
-      
+
       routes: {
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
@@ -87,11 +92,11 @@ class ShieldLink extends StatelessWidget {
       },
     );
   }
-}   
+}
 
 class AuthenticationWrapper extends StatelessWidget {
   final StreamChatClient client;
-  
+
   const AuthenticationWrapper({super.key, required this.client});
 
   @override
@@ -101,9 +106,8 @@ class AuthenticationWrapper extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        } 
+        }
         if (snapshot.hasData && snapshot.data != null) {
-          // Connect the user to Stream
           final user = snapshot.data!;
           if (user.uid.isEmpty) {
             throw Exception('User ID is null or empty');
@@ -114,7 +118,14 @@ class AuthenticationWrapper extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              return HomeScreen();
+              return SessionTimeOutListener( // Wrap HomeScreen with SessionTimeOutListener
+                child: HomeScreen(),
+                duration: Duration(minutes: 5), // Set your session timeout duration
+                // duration: Duration(minutes: 1), // For demonstration
+                onTimeOut: () {
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+              );
             },
           );
         }
@@ -123,16 +134,14 @@ class AuthenticationWrapper extends StatelessWidget {
     );
   }
 
-  Future<void> _connectStreamUser(
-      StreamChatClient client, firebase_auth.User user) async {
+  Future<void> _connectStreamUser(StreamChatClient client, firebase_auth.User user) async {
     final streamId = user.uid;
 
     if (streamId == null) {
       throw Exception('User ID is null');
     }
 
-    try{
-      // fetch the Stream token from the backend
+    try {
       final dio = Dio();
       final response = await dio.post(
         '$backendUrl/generate-token',
@@ -141,8 +150,7 @@ class AuthenticationWrapper extends StatelessWidget {
 
       if (response.statusCode == 200 && response.data['token'] != null) {
         final token = response.data['token'];
-        
-        // Connect the user to Stream Chat
+
         await client.connectUser(
           User(
             id: streamId,
