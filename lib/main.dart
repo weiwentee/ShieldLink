@@ -122,8 +122,14 @@ class AuthenticationWrapper extends StatelessWidget {
                 child: HomeScreen(),
                 duration: Duration(minutes: 5), // Set your session timeout duration
                 // duration: Duration(minutes: 1), // For demonstration
-                onTimeOut: () {
-                  Navigator.pushReplacementNamed(context, '/login');
+                onTimeOut: () async {
+                  // Log out of Firebase on session timeout
+                  try {
+                    await firebase_auth.FirebaseAuth.instance.signOut(); // Firebase sign-out
+                    Navigator.pushReplacementNamed(context, '/login'); // Navigate to login screen
+                  } catch (e) {
+                    print('Error signing out: $e'); // Handle any errors during sign-out
+                  }
                 },
               );
             },
