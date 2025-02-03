@@ -28,7 +28,7 @@ dependencies:
   fluttertoast: ^8.2.2
   font_awesome_flutter: ^10.8.0
   google_sign_in: ^6.2.2
-  photo_manager: ^3.6.3
+  photo_manager: ^3.5.0
   # firebase_auth_web: ^5.13.5
   # firebase_storage_web: ^3.9.0
   google_fonts: ^6.2.1

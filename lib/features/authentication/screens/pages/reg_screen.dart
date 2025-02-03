@@ -192,6 +192,18 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+  String maskSensitiveData(String text) {
+    if (text.isEmpty) return text;
+
+    // Mask the email address
+    text = text.replaceAllMapped(
+      RegExp(r'([a-zA-Z0-9._%+-]){1}([a-zA-Z0-9._%+-]*)@([a-zA-Z0-9]){1}([a-zA-Z0-9.-]*)\.([a-zA-Z]{2,})'),
+      (match) => '${match.group(1)}***@${match.group(3)}****.${match.group(5)}',
+    );
+
+    return text;
+  }
+
   // Signup function (preserved)
   Future<void> _signUp() async {
     setState(() {
@@ -237,6 +249,9 @@ class _SignUpPageState extends State<SignUpPage> {
       final user = userCredential.user;
       if (user == null) throw Exception('User creation failed');
 
+      // Mask email address for logging/display purposes
+      String maskedEmail = maskSensitiveData(email);
+
       // Save to Firestore
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'username': username,
@@ -244,8 +259,11 @@ class _SignUpPageState extends State<SignUpPage> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
+      // Logging masked email
+      print('New user created: Email = $maskedEmail');
+
       // Connect user to Stream chat
-      await _createStreamChatUser(user.uid, username);
+      await _createStreamChatUser(user.uid, username, email);
 
       showToast(message: "Account created successfully.");
       Navigator.pushNamed(context, "/home");
@@ -258,13 +276,16 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  Future<void> _createStreamChatUser(String streamId, String username) async {
+  Future<void> _createStreamChatUser(String streamId, String username, String email) async {
     try {
       // fetch the Stream token from the backend
       final dio = Dio();
       final response = await dio.post(
         '$backendUrl/generate-token',
-        data: {'userId': username},
+        data: {
+          'userId': streamId,
+          'email': email
+        },
       );
 
       if (response.statusCode == 200) {

@@ -1,11 +1,14 @@
+import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart';
+import 'package:dio/dio.dart';
 import 'package:shieldlink/features/global/toast.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart' as stream_chat;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,6 +16,8 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
+
+const String backendUrl = 'http://localhost:3000';
 
 class _LoginPageState extends State<LoginPage> {
   bool _isSigning = false;
@@ -180,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
     String password = _passwordController.text;
 
     try {
-      User? user = await _auth.signInWithEmailAndPassword(email, password);
+      firebase_auth.User? user = await _auth.signInWithEmailAndPassword(email, password);
 
       setState(() {
         _isSigning = false;
@@ -188,6 +193,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (user != null) {
         showToast(message: "Successfully signed in!");
+
+        // Send request to backend to generate Stream Chat token
+        await _createStreamChatUser(user.uid, email);
         Navigator.pushNamed(context, "/home");
       }
     } catch (e) {
@@ -197,6 +205,37 @@ class _LoginPageState extends State<LoginPage> {
 
       String errorMessage = _handleLoginError(e);
       showToast(message: errorMessage);
+    }
+  }
+
+  Future<void> _createStreamChatUser(String userId, String email) async {
+    try {
+      final dio = Dio();
+      final response = await dio.post(
+        '$backendUrl/generate-token',
+        data: {
+          'userId': userId,
+          'email': email,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data['token'] != null) {
+        final token = response.data['token'];
+
+        final client = StreamChatCore.of(context).client;
+        await client.connectUser(
+          stream_chat.User(
+            id: userId,
+            extraData: {'email': email}),
+          token,
+        );
+        print('Stream Chat user connected');
+      } else {
+        throw Exception('Failed to fetch token from backend');
+      }
+    } catch (e) {
+      print('Error connecting to Stream: $e');
+      throw Exception('Stream Chat connection failed');
     }
   }
 
