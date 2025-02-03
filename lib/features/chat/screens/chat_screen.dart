@@ -1,38 +1,34 @@
-// This screen handles the messaging interfcae
-
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import '../../../widgets/masked_chat_wrapper.dart'; // Import MaskedChatWrapper
 
 class ChannelPage extends StatelessWidget {
-  const ChannelPage({
-    Key? key,
-  }) : super(key: key);
+  const ChannelPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const StreamChannelHeader(),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: StreamMessageListView(
-              threadBuilder: (_, parentMessage) => ThreadPage(
-                parent: parentMessage!,
+    return MaskedChatWrapper(
+      child: Scaffold(
+        appBar: const StreamChannelHeader(),
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: StreamMessageListView(
+                threadBuilder: (_, parentMessage) => ThreadPage(
+                  parent: parentMessage!,
+                ),
               ),
             ),
-          ),
-          const StreamMessageInput(),
-        ],
+            const StreamMessageInput(),
+          ],
+        ),
       ),
     );
   }
 }
 
 class ThreadPage extends StatefulWidget {
-  const ThreadPage({
-    Key? key,
-    required this.parent,
-  }) : super(key: key);
+  const ThreadPage({Key? key, required this.parent}) : super(key: key);
 
   final Message parent;
 
@@ -53,21 +49,21 @@ class _ThreadPageState extends State<ThreadPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: StreamThreadHeader(
-        parent: widget.parent,
-      ),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: StreamMessageListView(
-              parentMessage: widget.parent,
+    return MaskedChatWrapper(
+      child: Scaffold(
+        appBar: StreamThreadHeader(parent: widget.parent),
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: StreamMessageListView(
+                parentMessage: widget.parent,
+              ),
             ),
-          ),
-          StreamMessageInput(
-            messageInputController: _controller,
-          ),
-        ],
+            StreamMessageInput(
+              messageInputController: _controller,
+            ),
+          ],
+        ),
       ),
     );
   }
