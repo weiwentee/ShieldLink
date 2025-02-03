@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:shieldlink/app.dart';
+// import 'package:shieldlink/app.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
 import 'package:shieldlink/features/authentication/screens/splash_screen/splash_screen.dart';
 // import 'package:shieldlink/features/authentication/screens/temp_success_screen.dart';
@@ -12,7 +12,7 @@ import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart
 import 'dart:io' as io; // Import to detect platforms
 import 'package:flutter/foundation.dart';
 import 'package:shieldlink/features/security/theft_detection.dart';
-import 'package:shieldlink/screens/user_search.dart';
+// import 'package:shieldlink/screens/user_search.dart';
 import 'package:shieldlink/screens/home_screen.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart'; // For StreamChatLocalizations
@@ -20,12 +20,12 @@ import 'package:stream_chat_localizations/stream_chat_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dio/dio.dart'; // For HTTP requests
 // Replace these values with your Firebase project's settings
-import 'package:shieldlink/screens/home_screen.dart';
-import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
-import 'dart:io' as io;
-import 'package:flutter/foundation.dart';
-import 'package:dio/dio.dart';
+// import 'package:shieldlink/screens/home_screen.dart';
+// import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+// import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
+// import 'dart:io' as io;
+// import 'package:flutter/foundation.dart';
+// import 'package:dio/dio.dart';
 import 'package:shieldlink/utils/session_listener.dart'; // Import your SessionTimeOutListener
 
 const firebaseWebConfig = FirebaseOptions(
