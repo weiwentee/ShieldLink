@@ -28,7 +28,7 @@ class _MaskedChatWrapperState extends State<MaskedChatWrapper> {
   void _startInactivityTimer() {
     print("Started inactivity timer");
     _inactivityTimer?.cancel(); // Cancel existing timer if any
-    _inactivityTimer = Timer(const Duration(seconds: 30), () {
+    _inactivityTimer = Timer(const Duration(seconds: 10), () {
       if (mounted) {
         setState(() {
           _isScreenInactive = true;

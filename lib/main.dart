@@ -122,8 +122,8 @@ class AuthenticationWrapper extends StatelessWidget {
               return SessionTimeOutListener( // Wrap HomeScreen with SessionTimeOutListener
                 // child: TheftDetection(child: HomeScreen()),
                 child: HomeScreen(),
-                duration: Duration(minutes: 5), // Set your session timeout duration
-                // duration: Duration(minutes: 1), // For demonstration
+                // duration: Duration(minutes: 5), // Set your session timeout duration
+                duration: Duration(seconds: 5), // For demonstration
                 onTimeOut: () async {
                   // Log out of Firebase on session timeout
                   try {
