@@ -13,6 +13,9 @@ class ChatScreen extends StatelessWidget {
     // Ensure user is watching the channel
     channel.watch();
 
+    // Query the channel for messages
+    _fetchMessages(channel);
+
     return MaskedChatWrapper(
       child: Scaffold(
         appBar: StreamChannelHeader(),
@@ -55,7 +58,6 @@ class ChatScreen extends StatelessWidget {
 
                   return updatedMessage;
                 }
-
                 // ✅ If it's a normal text message, send as-is
                 return message;
               },
@@ -64,6 +66,16 @@ class ChatScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // ✅ Fetch messages from the channel
+  void _fetchMessages(Channel channel) async {
+    try {
+      final channelState = await channel.query();
+      print('Debug: Messages in channel: ${channelState.messages?.map((m) => m.text).toList() ?? []}');
+    } catch (e) {
+      print('Error fetching messages: $e');
+    }
   }
 
   // ✅ Show a dialog to set the expiry time of the file

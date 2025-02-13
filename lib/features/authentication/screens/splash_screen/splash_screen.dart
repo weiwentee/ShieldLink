@@ -28,14 +28,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Start the fade-out animation after a 2-second delay
     Future.delayed(const Duration(seconds: 2), () {
-      _controller.forward().whenComplete(() => _navigateToNextScreen());
+      if (mounted) { // ✅ Ensure widget is still in the tree
+        _controller.forward().whenComplete(() {
+          if (mounted) { // ✅ Ensure widget is still in the tree before navigation
+            _navigateToNextScreen();
+          }
+        });
+      }
     });
   }
 
   void _navigateToNextScreen() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => widget.child!),
-    );
+    if (mounted) { // ✅ Check again before navigating
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => widget.child!),
+      );
+    }
   }
 
   @override

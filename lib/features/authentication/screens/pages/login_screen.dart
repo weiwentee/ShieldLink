@@ -17,7 +17,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-const String backendUrl = 'http://localhost:3000';
+const String backendUrl = 'http://192.168.1.10:3000';
 
 class _LoginPageState extends State<LoginPage> {
   bool _isSigning = false;

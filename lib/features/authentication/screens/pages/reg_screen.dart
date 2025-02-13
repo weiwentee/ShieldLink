@@ -25,7 +25,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isSigningUp = false;
   bool _isPasswordVisible = false;
 
-  final String backendUrl = 'http://localhost:3000'; // Update with your deployed backend URL
+  final String backendUrl = 'http://192.168.1.10:3000'; // Update with your deployed backend URL
 
   @override
   void dispose() {

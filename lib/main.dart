@@ -1,32 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-// import 'package:shieldlink/app.dart';
-import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
-import 'package:shieldlink/features/authentication/screens/splash_screen/splash_screen.dart';
-// import 'package:shieldlink/features/authentication/screens/temp_success_screen.dart';
-import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart';
-// import 'package:shieldlink/features/chat/screens/chat_list_screen.dart';
-// import 'package:shieldlink/features/chat/screens/chat_screen.dart';
-// import 'package:shieldlink/features/chat/services/chat_services.dart';
 import 'dart:io' as io; // Import to detect platforms
 import 'package:flutter/foundation.dart';
+import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
+import 'package:shieldlink/features/authentication/screens/splash_screen/splash_screen.dart';
+import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart';
 import 'package:shieldlink/features/security/theft_detection.dart';
-// import 'package:shieldlink/screens/user_search.dart';
 import 'package:shieldlink/screens/home_screen.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart'; // For StreamChatLocalizations
+import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
 import 'package:stream_chat_localizations/stream_chat_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:dio/dio.dart'; // For HTTP requests
-// Replace these values with your Firebase project's settings
-// import 'package:shieldlink/screens/home_screen.dart';
-// import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-// import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
-// import 'dart:io' as io;
-// import 'package:flutter/foundation.dart';
-// import 'package:dio/dio.dart';
-import 'package:shieldlink/utils/session_listener.dart'; // Import your SessionTimeOutListener
+import 'package:dio/dio.dart';
+import 'package:shieldlink/utils/session_listener.dart';
 
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
@@ -39,7 +26,7 @@ const firebaseWebConfig = FirebaseOptions(
 );
 
 const streamApiKey = 'qg3xperd8afd';
-const backendUrl = 'http://localhost:3000';
+const backendUrl = 'http://192.168.1.10:3000';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +42,7 @@ Future main() async {
     logLevel: Level.INFO,
   );
 
-  runApp(ShieldLink(client: client)); // Running ShieldLink widget
+  runApp(ShieldLink(client: client));
 }
 
 class ShieldLink extends StatelessWidget {
@@ -74,18 +61,14 @@ class ShieldLink extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalStreamChatLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en'),
-      ],
+      supportedLocales: const [Locale('en')],
       home: AuthenticationWrapper(client: client),
-
       builder: (context, child) {
         return StreamChat(
           client: client,
           child: StreamChatCore(client: client, child: child!),
         );
       },
-
       routes: {
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
@@ -119,18 +102,15 @@ class AuthenticationWrapper extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
-              return SessionTimeOutListener( // Wrap HomeScreen with SessionTimeOutListener
-                // child: TheftDetection(child: HomeScreen()),
-                child: HomeScreen(),
-                // duration: Duration(minutes: 5), // Set your session timeout duration
-                duration: Duration(seconds: 5), // For demonstration
+              return SessionTimeOutListener(
+                child: TheftDetection(child: HomeScreen()),
+                duration: Duration(seconds: 5),
                 onTimeOut: () async {
-                  // Log out of Firebase on session timeout
                   try {
-                    await firebase_auth.FirebaseAuth.instance.signOut(); // Firebase sign-out
-                    Navigator.pushReplacementNamed(context, '/login'); // Navigate to login screen
+                    await firebase_auth.FirebaseAuth.instance.signOut();
+                    Navigator.pushReplacementNamed(context, '/login');
                   } catch (e) {
-                    print('Error signing out: $e'); // Handle any errors during sign-out
+                    print('Error signing out: $e');
                   }
                 },
               );
@@ -145,33 +125,36 @@ class AuthenticationWrapper extends StatelessWidget {
   Future<void> _connectStreamUser(StreamChatClient client, firebase_auth.User user) async {
     final streamId = user.uid;
 
-    if (streamId == null) {
-      throw Exception('User ID is null');
+    if (streamId.isEmpty) {
+      throw Exception('User ID is null or empty');
     }
 
     try {
-      final dio = Dio();
+      final dio = Dio(BaseOptions(connectTimeout: Duration(milliseconds: 5000), receiveTimeout: Duration(milliseconds: 5000)));
+      print("🔹 Requesting Stream Chat token for $streamId...");
+
       final response = await dio.post(
         '$backendUrl/generate-token',
-        data: {'userId': streamId},
+        data: {'userId': streamId, 'email': user.email ?? 'anonymous@shieldlink.com'},
       );
+
+      print("🔹 Backend response: ${response.data}");
 
       if (response.statusCode == 200 && response.data['token'] != null) {
         final token = response.data['token'];
 
         await client.connectUser(
-          User(
-            id: streamId,
-            name: user.displayName ?? user.email ?? 'Anonymous',
-          ),
+          User(id: streamId, name: user.displayName ?? user.email ?? 'Anonymous'),
           token,
         );
+
+        print("✅ Stream Chat user connected successfully!");
       } else {
-        throw Exception('Failed to fetch token from backend');
+        throw Exception("❌ Failed to fetch token from backend.");
       }
     } catch (e) {
-      print('Error connecting to Stream: $e');
-      throw Exception('Stream Chat connection failed');
+      print("❌ Error connecting to Stream Chat: $e");
+      throw Exception('Stream Chat connection failed.');
     }
   }
 }
