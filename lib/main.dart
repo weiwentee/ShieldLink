@@ -102,6 +102,9 @@ class AuthenticationWrapper extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
+              
+              print("✅ User is logged in. Starting session timeout listener...");
+
               return SessionTimeOutListener(
                 child: TheftDetection(child: HomeScreen()),
                 duration: Duration(seconds: 5),
