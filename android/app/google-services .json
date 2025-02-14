@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1004734408718",
+    "project_id": "shieldlink-b052c",
+    "storage_bucket": "shieldlink-b052c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1004734408718:android:ceeb18db9f231010a9745f",
+        "android_client_info": {
+          "package_name": "com.app.shieldlink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANDwpluAuvndrHB067FjNiItx2GUXzIh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1004734408718:android:83d074cd7c61b7bfa9745f",
+        "android_client_info": {
+          "package_name": "com.example.shieldlink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyANDwpluAuvndrHB067FjNiItx2GUXzIh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.shieldlink">
     <application
         android:label="shieldlink"
-        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -31,6 +31,41 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+
+    <!-- Firebase Push Notification Configuration -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id"/>
+
+        <!-- Required for Stream Push Notifications -->
+        <meta-data
+            android:name="io.getstream.android.push.firebase.SenderId"
+            android:value="1004734408718" />
+        
+        <meta-data
+            android:name="io.getstream.android.push.firebase.ApiKey"
+            android:value="@string/firebase_api_key" />
+
+        <!-- Required Firebase Services -->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+<!-- Required for Stream Push Delegate -->
+        <!-- <provider
+            android:name="io.getstream.android.push.delegate.AndroidPushDelegateProvider"
+            android:authorities="${applicationId}.streampushdelegateprovider"
+            android:enabled="true"
+            android:exported="false"
+            tools:replace="android:authorities" />
+ -->
+
+
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
