@@ -44,3 +44,4 @@ app.*.map.json
 
 # Exclude .env file
 .env
+Shieldlink-Backend/
