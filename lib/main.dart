@@ -117,8 +117,8 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
     print("✅ User is logged in. Starting session timeout listener...");
 
     return SessionTimeOutListener(
-      // duration: Duration(seconds: 20), // ⏳ Set timeout duration
-      duration: Duration(minutes: 20), // ⏳ Set timeout duration
+      duration: Duration(seconds: 20), // ⏳ Set timeout duration
+      // duration: Duration(minutes: 20), // ⏳ Set timeout duration
       onTimeOut: () async {
         print("⚠️ Session expired. Logging out...");
 
