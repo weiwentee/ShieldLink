@@ -15,6 +15,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dio/dio.dart';
 import 'package:shieldlink/utils/session_listener.dart';
 
+// 🔥 Firebase web configuration
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
   authDomain: "shieldlink-b052c.firebaseapp.com",
@@ -26,11 +27,12 @@ const firebaseWebConfig = FirebaseOptions(
 );
 
 const streamApiKey = 'qg3xperd8afd';
-const backendUrl = 'http://192.168.1.10:3000';
+const backendUrl = 'http://192.168.79.14:3000';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 🔍 Initialize Firebase
   if (kIsWeb) {
     await Firebase.initializeApp(options: firebaseWebConfig);
   } else if (io.Platform.isAndroid) {
@@ -62,7 +64,7 @@ class ShieldLink extends StatelessWidget {
         GlobalStreamChatLocalizations.delegate,
       ],
       supportedLocales: const [Locale('en')],
-      home: AuthenticationWrapper(client: client),
+      home: AuthenticationWrapper(client: client), // 🔥 Entry point: AuthenticationWrapper
       builder: (context, child) {
         return StreamChat(
           client: client,
@@ -78,53 +80,89 @@ class ShieldLink extends StatelessWidget {
   }
 }
 
-class AuthenticationWrapper extends StatelessWidget {
+// ✅ Convert AuthenticationWrapper into a StatefulWidget to force UI rebuilds
+class AuthenticationWrapper extends StatefulWidget {
   final StreamChatClient client;
 
   const AuthenticationWrapper({super.key, required this.client});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<firebase_auth.User?>(
-      stream: firebase_auth.FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasData && snapshot.data != null) {
-          final user = snapshot.data!;
-          if (user.uid.isEmpty) {
-            throw Exception('User ID is null or empty');
-          }
-          return FutureBuilder(
-            future: _connectStreamUser(client, user),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              
-              print("✅ User is logged in. Starting session timeout listener...");
+  State<AuthenticationWrapper> createState() => _AuthenticationWrapperState();
+}
 
-              return SessionTimeOutListener(
-                child: TheftDetection(child: HomeScreen()),
-                duration: Duration(seconds: 5),
-                onTimeOut: () async {
-                  try {
-                    await firebase_auth.FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacementNamed(context, '/login');
-                  } catch (e) {
-                    print('Error signing out: $e');
-                  }
-                },
-              );
-            },
-          );
+class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
+  firebase_auth.User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenForAuthChanges();
+  }
+
+  // ✅ Listen for authentication changes and rebuild UI when user logs in
+  void _listenForAuthChanges() {
+    firebase_auth.FirebaseAuth.instance.authStateChanges().listen((user) {
+      setState(() {
+        _user = user;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_user == null) {
+      return SplashScreen(child: LoginPage());
+    }
+
+    print("✅ User is logged in. Starting session timeout listener...");
+
+    return SessionTimeOutListener(
+      // duration: Duration(seconds: 20), // ⏳ Set timeout duration
+      duration: Duration(minutes: 20), // ⏳ Set timeout duration
+      onTimeOut: () async {
+        print("⚠️ Session expired. Logging out...");
+
+        try {
+          // 1️⃣ Sign out from Firebase
+          await firebase_auth.FirebaseAuth.instance.signOut();
+          print("✅ Firebase sign out successful.");
+
+          // 2️⃣ Disconnect from Stream Chat
+          await widget.client.disconnectUser();
+          print("✅ Stream Chat user disconnected.");
+
+          // 3️⃣ Clear user session storage (if applicable)
+          // Example: If you're storing user details in shared preferences, clear them
+          // final prefs = await SharedPreferences.getInstance();
+          // await prefs.clear();
+
+          print("✅ Session completely cleared.");
+
+          // 4️⃣ Redirect user to login page
+          if (context.mounted) {
+            Future.delayed(Duration.zero, () {
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            });
+          }
+        } catch (e) {
+          print('❌ Error signing out: $e');
         }
-        return SplashScreen(child: LoginPage());
       },
+      child: FutureBuilder(
+        future: _connectStreamUser(widget.client, _user!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // ✅ Wrap HomeScreen with TheftDetection so that Theft Lock works properly
+          return TheftDetection(child: HomeScreen());
+        },
+      ),
     );
   }
 
+  // 🔹 Connect user to Stream Chat API
   Future<void> _connectStreamUser(StreamChatClient client, firebase_auth.User user) async {
     final streamId = user.uid;
 
