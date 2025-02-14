@@ -53,10 +53,9 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     try {
       final dio = Dio();
       print("🔹 Sending request to create channel...");
-      print("📤 Request body: userId=$currentUserId, recipientId=${selectedUser.id}");
 
       final response = await dio.post(
-        '$backendUrl/create-channel',
+        'http://192.168.1.10:3000/create-channel',
         data: {'userId': currentUserId, 'recipientId': selectedUser.id},
       );
 
