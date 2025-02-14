@@ -14,6 +14,7 @@ import 'package:stream_chat_localizations/stream_chat_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dio/dio.dart';
 import 'package:shieldlink/utils/session_listener.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
@@ -26,8 +27,11 @@ const firebaseWebConfig = FirebaseOptions(
 );
 
 const streamApiKey = 'qg3xperd8afd';
-const backendUrl = 'http://192.168.1.10:3000';
+const backendUrl = 'http://192.168.1.13:3000';
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("🔥 Handling background message: ${message.messageId}");
+}
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -41,6 +45,36 @@ Future main() async {
     streamApiKey,
     logLevel: Level.INFO,
   );
+
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Request Permission for Notifications
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  print("Notification permission: ${settings.authorizationStatus}");
+
+  // Get the FCM Token
+  String? fcmToken = await messaging.getToken();
+  print("FCM Token: $fcmToken");
+
+  if (fcmToken != null) {
+    try {
+      await client.addDevice(
+        fcmToken,
+        PushProvider.firebase,
+        pushProviderName: "FirebasePushNotifs",
+      );
+      print("✅ FCM Token registered with Stream");
+    } catch (e) {
+      print("❌ Error adding device to Stream: $e");
+    }
+  }
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(ShieldLink(client: client));
 }
@@ -107,7 +141,7 @@ class AuthenticationWrapper extends StatelessWidget {
 
               return SessionTimeOutListener(
                 child: TheftDetection(child: HomeScreen()),
-                duration: Duration(seconds: 5),
+                duration: Duration(seconds: 500),
                 onTimeOut: () async {
                   try {
                     await firebase_auth.FirebaseAuth.instance.signOut();
