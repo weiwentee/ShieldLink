@@ -61,18 +61,11 @@ class _MaskedChatWrapperState extends State<MaskedChatWrapper> {
             child: widget.child, // The chat UI
           ),
           if (_isScreenInactive)
-            Container(
-              color: Colors.black.withOpacity(0.7), // Dark overlay effect
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: _resetInactivityTimer,
-                    child: const Text("Resume"),
-                  ),
-                ],
+            GestureDetector(
+              onTap: _resetInactivityTimer, // Tap anywhere to resume
+              child: Container(
+                color: Colors.black.withOpacity(1.0), // Dark overlay effect
+                alignment: Alignment.center,
               ),
             ),
         ],
