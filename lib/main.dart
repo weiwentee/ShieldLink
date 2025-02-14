@@ -23,7 +23,7 @@ const firebaseWebConfig = FirebaseOptions(
   projectId: "shieldlink-b052c",
   storageBucket: "shieldlink-b052c.firebasestorage.app",
   messagingSenderId: "1004734408718",
-  appId: "1:1004734408718:web:a5b243f8749a8824a9745f",
+  appId: "1:1004734408718:android:83d074cd7c61b7bfa9745f",
   measurementId: "G-3Y3BYT6G83"
 );
 
