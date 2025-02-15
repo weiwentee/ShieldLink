@@ -32,7 +32,7 @@ const firebaseWebConfig = FirebaseOptions(
 
 const streamApiKey = 'qg3xperd8afd';
 // const backendUrl = 'http://192.168.79.14:3000';
-const backendUrl = 'http://192.168.1.19:3000';
+const backendUrl = 'http://192.168.79.14:3000';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("🔥 Handling background message: ${message.messageId}");
@@ -177,8 +177,8 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
     print("✅ User is logged in. Starting session timeout listener...");
 
     return SessionTimeOutListener(
-      duration: Duration(seconds: 20), // ⏳ Set timeout duration
-      // duration: Duration(minutes: 20), // ⏳ Set timeout duration
+      // duration: Duration(seconds: 20), // ⏳ Set timeout duration
+      duration: Duration(minutes: 20), // ⏳ Set timeout duration
       onTimeOut: () async {
         print("⚠️ Session expired. Logging out...");
 

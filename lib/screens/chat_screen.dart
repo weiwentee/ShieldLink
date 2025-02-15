@@ -1,86 +1,123 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import '../../../widgets/masked_chat_wrapper.dart'; // Import MaskedChatWrapper
-import 'package:flutter/cupertino.dart'; 
+import 'package:file_picker/file_picker.dart';
+import '../../../widgets/masked_chat_wrapper.dart'; // ✅ Masking Feature
+import 'package:flutter/cupertino.dart';
 
-class ChatScreen extends StatelessWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+class ChatScreen extends StatefulWidget {
+  final Channel channel;
+
+  const ChatScreen({Key? key, required this.channel}) : super(key: key);
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  bool _isMaskingEnabled = true; // ✅ Prevents theft-lock activation
 
   @override
   Widget build(BuildContext context) {
-    final channel = StreamChannel.of(context).channel;
+    return StreamChannel(
+      channel: widget.channel,
+      child: MaskedChatWrapper(
+        child: Scaffold(
+          appBar: StreamChannelHeader(),
+          body: Column(
+            children: [
+              Expanded(
+                child: StreamMessageListView(
+                  messageFilter: (message) {
+                    final expiresAt = message.extraData?['expires_at'];
+                    if (expiresAt != null && expiresAt is int) {
+                      return DateTime.now().millisecondsSinceEpoch < expiresAt;
+                    }
+                    return true;
+                  },
+                ),
+              ),
 
-    // Ensure user is watching the channel
-    channel.watch();
+              StreamMessageInput(
+                preMessageSending: (message) async {
+                  if (message.attachments.isNotEmpty) {
+                    int? expiryMinutes = await _showExpiryDialog(context);
+                    if (expiryMinutes == null) return message;
 
-    // Query the channel for messages
-    _fetchMessages(channel);
+                    final expiryTime = DateTime.now()
+                        .add(Duration(minutes: expiryMinutes))
+                        .millisecondsSinceEpoch;
 
-    return MaskedChatWrapper(
-      child: Scaffold(
-        appBar: StreamChannelHeader(),
-        body: Column(
-          children: [
-            Expanded(
-              child: StreamMessageListView(
-                messageFilter: (message) {
-                  // ✅ Ensure extraData exists before accessing 'expires_at'
-                  final expiresAt = message.extraData?['expires_at'];
-                  if (expiresAt != null && expiresAt is int) {
-                    return DateTime.now().millisecondsSinceEpoch < expiresAt;
+                    return message.copyWith(extraData: {
+                      ...message.extraData, // ✅ Retain existing data
+                      'expires_at': expiryTime,
+                    });
                   }
-                  return true;
+                  return message;
+                },
+                attachmentButtonBuilder: (context, onPressed) {
+                  return IconButton(
+                    icon: const Icon(Icons.attach_file),
+                    onPressed: () async {
+                      await _pickFile();
+                    },
+                  );
                 },
               ),
-            ),
-
-            StreamMessageInput(
-              preMessageSending: (message) async {
-                // ✅ Check if the message contains a file attachment
-                if (message.attachments.isNotEmpty) {
-                  int? expiryMinutes = await _showExpiryDialog(context);
-
-                  // ✅ If user cancels expiry selection, don't add expiry
-                  if (expiryMinutes == null) {
-                    return message;
-                  }
-
-                  // ✅ Set the expiry timestamp
-                  final expiryTime = DateTime.now()
-                      .add(Duration(minutes: expiryMinutes))
-                      .millisecondsSinceEpoch;
-
-                  // ✅ Add expiry time to the file message only
-                  final updatedMessage = message.copyWith(extraData: {
-                    ...message.extraData ?? {}, // Ensure existing data is kept
-                    'expires_at': expiryTime,
-                  });
-
-                  return updatedMessage;
-                }
-                // ✅ If it's a normal text message, send as-is
-                return message;
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // ✅ Fetch messages from the channel
-  void _fetchMessages(Channel channel) async {
+  /// ✅ Picks a File and Attaches It
+  Future<void> _pickFile() async {
     try {
-      final channelState = await channel.query();
-      print('Debug: Messages in channel: ${channelState.messages?.map((m) => m.text).toList() ?? []}');
+      _disableMasking(); // ✅ Prevent theft lock activation
+
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+      if (result != null) {
+        PlatformFile file = result.files.first;
+        final attachment = Attachment(
+          type: 'file',
+          file: AttachmentFile(
+            path: file.path,
+            size: file.size,
+            name: file.name,
+          ),
+        );
+
+        final expiryMinutes = await _showExpiryDialog(context);
+        final expiryTime = expiryMinutes != null
+            ? DateTime.now().add(Duration(minutes: expiryMinutes)).millisecondsSinceEpoch
+            : null;
+
+        final message = Message(
+          attachments: [attachment],
+        ).copyWith(extraData: {
+          if (expiryTime != null) 'expires_at': expiryTime,
+        });
+
+        await widget.channel.sendMessage(message);
+      }
     } catch (e) {
-      print('Error fetching messages: $e');
+      print("❌ Error picking file: $e");
+    } finally {
+      _enableMasking(); // ✅ Re-enable masking after selection
     }
   }
 
-  // ✅ Show a dialog to set the expiry time of the file
+  void _disableMasking() {
+    setState(() => _isMaskingEnabled = false);
+  }
+
+  void _enableMasking() {
+    setState(() => _isMaskingEnabled = true);
+  }
+
   Future<int?> _showExpiryDialog(BuildContext context) async {
-    Duration selectedDuration = const Duration(minutes: 5); // Default expiry time
+    Duration selectedDuration = const Duration(minutes: 5);
 
     return await showModalBottomSheet<int>(
       context: context,
@@ -100,10 +137,9 @@ class ChatScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Scroll Piicker
               Expanded(
                 child: CupertinoTimerPicker(
-                  mode: CupertinoTimerPickerMode.hm, // Hours and minutes
+                  mode: CupertinoTimerPickerMode.hm,
                   initialTimerDuration: selectedDuration,
                   onTimerDurationChanged: (Duration newDuration) {
                     selectedDuration = newDuration;
@@ -116,16 +152,14 @@ class ChatScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // No expiry button
                   TextButton(
                     onPressed: () => Navigator.pop(context, null),
-                    child: const Text( 
+                    child: const Text(
                       'No Expiry',
                       style: TextStyle(fontSize: 16, color: Colors.blue),
                     ),
                   ),
 
-                  // Confirm button
                   ElevatedButton(
                     onPressed: () {
                       int totalMinutes = selectedDuration.inMinutes;

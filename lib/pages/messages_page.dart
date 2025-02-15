@@ -123,7 +123,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   MaterialPageRoute(
                     builder: (context) => StreamChannel(
                       channel: channel,
-                      child: ChatScreen(),
+                      child: ChatScreen(channel: channel,),
                     ),
                   ),
                 );

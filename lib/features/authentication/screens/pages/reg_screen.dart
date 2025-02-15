@@ -25,7 +25,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isSigningUp = false;
   bool _isPasswordVisible = false;
 
-  final String backendUrl = 'http://192.168.1.10:3000'; // Update with your deployed backend URL
+  final String backendUrl = 'http://192.168.79.14:3000'; // Update with your deployed backend URL
 
   @override
   void dispose() {
@@ -276,33 +276,34 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  Future<void> _createStreamChatUser(String streamId, String username, String email) async {
-    try {
-      // fetch the Stream token from the backend
-      final dio = Dio();
-      final response = await dio.post(
-        '$backendUrl/generate-token',
-        data: {
-          'userId': streamId,
-          'email': email
-        },
-      );
+    Future<void> _createStreamChatUser(String streamId, String username, String email) async {
+      try {
+        print("🔹 Requesting Stream Chat token for user: $streamId ($email)");
 
-      if (response.statusCode == 200) {
-        final token = response.data['token'];
-
-        final client = StreamChatCore.of(context).client;
-        await client.connectUser(
-          User(id: streamId, extraData: {'name': username}),
-          token,
+        final dio = Dio();
+        final response = await dio.post(
+          '$backendUrl/generate-token',
+          data: {'userId': streamId, 'email': email},
         );
-        logger.i('User connected to Stream Chat successfully.');
-      } else {
-        throw Exception('Failed to fetch token from backend');
+
+        if (response.statusCode == 200 && response.data['token'] != null) {
+          final token = response.data['token'];
+          print("✅ Stream Chat token received: $token");
+
+          final client = StreamChatCore.of(context).client;
+
+          await client.connectUser(
+            User(id: streamId, extraData: {'name': username, 'email': email}),
+            token,
+          );
+
+          print("✅ User connected to Stream Chat successfully.");
+        } else {
+          throw Exception('Failed to fetch token from backend');
+        }
+      } catch (e) {
+        print('❌ Error connecting to Stream Chat: $e');
+        throw e;
       }
-    } catch (e) {
-      logger.e('Error connecting to Stream: $e');
-      throw e;
     }
-  }
 }
