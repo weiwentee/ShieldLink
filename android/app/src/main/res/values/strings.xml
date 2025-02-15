@@ -1,5 +1,4 @@
 <resources>
-    <!-- Other string resources -->
     <string name="app_name">ShieldLink</string>
     <string name="default_notification_channel_id">shieldlink_notifications</string>
     <string name="firebase_api_key">AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI</string>
