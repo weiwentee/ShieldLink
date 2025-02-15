@@ -11,6 +11,7 @@ import 'package:shieldlink/features/global/toast.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart' as stream_chat;
 import 'package:local_auth/local_auth.dart';
+import 'package:shieldlink/screens/home_screen.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -285,6 +286,11 @@ Future<void> _authenticateWithBiometrics() async {
   if (isAuthenticated) {
     print("✅ Fingerprint Authentication Successful");
     showToast(message: "Fingerprint login successful!");
+    Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(builder: (context) => HomeScreen()),
+);
+
 
     firebase_auth.User? user = _firebaseAuth.currentUser;
     if (user != null) {
