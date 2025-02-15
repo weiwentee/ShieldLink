@@ -15,6 +15,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dio/dio.dart';
 import 'package:shieldlink/utils/session_listener.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:flutter/services.dart';
+
 
 // 🔥 Firebase web configuration
 const firebaseWebConfig = FirebaseOptions(
@@ -128,6 +131,8 @@ class AuthenticationWrapper extends StatefulWidget {
 
 class _AuthenticationWrapperState extends State<AuthenticationWrapper> with WidgetsBindingObserver {
   firebase_auth.User? _user;
+  final LocalAuthentication localAuth = LocalAuthentication();
+  bool _isAuthenticated = false;
 
   @override
   void initState() {
@@ -152,6 +157,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
       }
     });
   }
+
 
   // ✅ Detect when app comes back from the background
   @override

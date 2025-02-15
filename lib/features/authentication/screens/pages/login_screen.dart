@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/reg_screen.dart';
@@ -9,6 +10,8 @@ import 'package:dio/dio.dart';
 import 'package:shieldlink/features/global/toast.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart' as stream_chat;
+import 'package:local_auth/local_auth.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,178 +38,264 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white,
+    appBar: AppBar(
+      automaticallyImplyLeading: false,
+      title: const Text("Login"),
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text("Login"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SvgPicture.asset(
-                'assets/logos/main logo.svg',
-                width: 120,
-                height: 120,
-              ),
-              const Text(
-                "Login",
-                style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 30),
+      foregroundColor: Colors.black,
+      elevation: 0,
+    ),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              'assets/logos/main logo.svg',
+              width: 120,
+              height: 120,
+            ),
+            const Text(
+              "Login",
+              style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 30),
 
-              // Email Field
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  labelStyle: TextStyle(color: Colors.grey),
-                  border: UnderlineInputBorder(),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+            // Email Field
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: "Email",
+                labelStyle: TextStyle(color: Colors.grey),
+                border: UnderlineInputBorder(),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
                 ),
-                keyboardType: TextInputType.emailAddress,
-                cursorColor: Colors.blue,
+                floatingLabelBehavior: FloatingLabelBehavior.auto,
               ),
-              const SizedBox(height: 10),
+              keyboardType: TextInputType.emailAddress,
+              cursorColor: Colors.blue,
+            ),
+            const SizedBox(height: 10),
 
-              // Password Field
-              TextField(
-                controller: _passwordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  labelStyle: const TextStyle(color: Colors.grey),
-                  border: const UnderlineInputBorder(),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+            // Password Field
+            TextField(
+              controller: _passwordController,
+              obscureText: !_isPasswordVisible,
+              decoration: InputDecoration(
+                labelText: "Password",
+                labelStyle: const TextStyle(color: Colors.grey),
+                border: const UnderlineInputBorder(),
+                focusedBorder: const UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.blue),
                 ),
-                cursorColor: Colors.blue,
-              ),
-              const SizedBox(height: 30),
-
-              GestureDetector(
-                onTap: () {
-                  _signIn();
-                },
-                child: Container(
-                  width: double.infinity,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(10),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.grey,
                   ),
-                  child: Center(
-                    child: _isSigning
-                        ? const CircularProgressIndicator(
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.auto,
+              ),
+              cursorColor: Colors.blue,
+            ),
+            const SizedBox(height: 30),
+
+            // Login Button
+            GestureDetector(
+              onTap: () {
+                _signIn();
+              },
+              child: Container(
+                width: double.infinity,
+                height: 45,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: _isSigning
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                      : const Text(
+                          "Login",
+                          style: TextStyle(
                             color: Colors.white,
-                          )
-                        : const Text(
-                            "Login",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            fontWeight: FontWeight.bold,
                           ),
-                  ),
+                        ),
                 ),
               ),
-              const SizedBox(height: 10),
+            ),
+            const SizedBox(height: 10),
 
-              const SizedBox(height: 20),
+            // 🔥 New Fingerprint Login Button
+            ElevatedButton.icon(
+              onPressed: _authenticateWithBiometrics,
+              icon: Icon(Icons.fingerprint, size: 24),
+              label: Text("Login with Fingerprint"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[200],
+                foregroundColor: Colors.black,
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+              ),
+            ),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Don't have an account?"),
-                  const SizedBox(width: 5),
+            const SizedBox(height: 20),
 
-                  // Fixed Sign-Up Link
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignUpPage(),
-                          ),
-                          (route) => false,
-                        );
-                      },
-                      child: const Text(
-                        "Sign Up",
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.bold,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Don't have an account?"),
+                const SizedBox(width: 5),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpPage(),
                         ),
+                        (route) => false,
+                      );
+                    },
+                    child: const Text(
+                      "Sign Up",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+  
 
   void _signIn() async {
-    setState(() {
-      _isSigning = true;
-    });
+  setState(() {
+    _isSigning = true;
+  });
+  
+  
 
-    String email = _emailController.text;
-    String password = _passwordController.text;
+  final LocalAuthentication auth = LocalAuthentication();
+  bool canCheckBiometrics = await auth.canCheckBiometrics;
+  bool isAuthenticated = false;
 
+  if (canCheckBiometrics) {
     try {
-      firebase_auth.User? user = await _auth.signInWithEmailAndPassword(email, password);
-
-      setState(() {
-        _isSigning = false;
-      });
-
-      if (user != null) {
-        showToast(message: "Successfully signed in!");
-
-        // Send request to backend to generate Stream Chat token
-        await _createStreamChatUser(user.uid, email);
-        Navigator.pushNamed(context, "/home");
-      }
+      isAuthenticated = await auth.authenticate(
+        localizedReason: 'Scan your fingerprint to log in',
+        options: AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
     } catch (e) {
-      setState(() {
-        _isSigning = false;
-      });
-
-      String errorMessage = _handleLoginError(e);
-      showToast(message: errorMessage);
+      print('Biometric authentication error: $e');
+      showToast(message: 'Biometric authentication failed. Please try again.');
     }
   }
+
+  if (isAuthenticated) {
+    // Auto-login user if biometric authentication succeeds
+    firebase_auth.User? user = _firebaseAuth.currentUser;
+    
+    if (user != null) {
+      showToast(message: "Fingerprint login successful!");
+      
+      // Send request to backend to generate Stream Chat token
+      await _createStreamChatUser(user.uid, user.email!);
+      Navigator.pushNamed(context, "/home");
+    } else {
+      showToast(message: "No saved login found. Please sign in manually.");
+    }
+
+    setState(() {
+      _isSigning = false;
+    });
+    return;
+  }
+
+  // If biometric authentication fails or is not available, proceed with manual login
+  String email = _emailController.text;
+  String password = _passwordController.text;
+
+  try {
+    firebase_auth.User? user = await _auth.signInWithEmailAndPassword(email, password);
+
+    setState(() {
+      _isSigning = false;
+    });
+
+    if (user != null) {
+      showToast(message: "Successfully signed in!");
+      
+      // Send request to backend to generate Stream Chat token
+      await _createStreamChatUser(user.uid, email);
+      Navigator.pushNamed(context, "/home");
+    }
+  } catch (e) {
+    setState(() {
+      _isSigning = false;
+    });
+
+    String errorMessage = _handleLoginError(e);
+    showToast(message: errorMessage);
+  }
+}
+Future<void> _authenticateWithBiometrics() async {
+  final LocalAuthentication localAuth = LocalAuthentication();
+  bool isAuthenticated = false;
+
+  try {
+    isAuthenticated = await localAuth.authenticate(
+      localizedReason: 'Scan your fingerprint to log in',
+      options: AuthenticationOptions(
+        biometricOnly: true,
+        useErrorDialogs: true,
+        stickyAuth: true,
+      ),
+    );
+  } on PlatformException catch (e) {
+    print("❌ Biometric Error: ${e.message}");
+    showToast(message: "Biometric authentication failed. Try again.");
+    return;
+  }
+
+  if (isAuthenticated) {
+    print("✅ Fingerprint Authentication Successful");
+    showToast(message: "Fingerprint login successful!");
+
+    firebase_auth.User? user = _firebaseAuth.currentUser;
+    if (user != null) {
+      await _createStreamChatUser(user.uid, user.email!);
+      Navigator.pushNamed(context, "/home");
+    } else {
+      showToast(message: "No saved login found. Please sign in manually.");
+    }
+  }
+}
+
 
   Future<void> _createStreamChatUser(String userId, String email) async {
     try {
@@ -254,5 +343,8 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       return 'An unknown error occurred. Please try again later.';
     }
+    
   }
 }
+
+
