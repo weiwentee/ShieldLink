@@ -24,15 +24,17 @@ const firebaseWebConfig = FirebaseOptions(
   storageBucket: "shieldlink-b052c.firebasestorage.app",
   messagingSenderId: "1004734408718",
   appId: "1:1004734408718:android:83d074cd7c61b7bfa9745f",
-  measurementId: "G-3Y3BYT6G83"
+  measurementId: "G-3Y3BYT6G83",
 );
 
 const streamApiKey = 'qg3xperd8afd';
-const backendUrl = 'http://192.168.79.14:3000';
+// const backendUrl = 'http://192.168.79.14:3000';
+const backendUrl = 'http://192.168.1.19:3000';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("🔥 Handling background message: ${message.messageId}");
 }
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -124,22 +126,40 @@ class AuthenticationWrapper extends StatefulWidget {
   State<AuthenticationWrapper> createState() => _AuthenticationWrapperState();
 }
 
-class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
+class _AuthenticationWrapperState extends State<AuthenticationWrapper> with WidgetsBindingObserver {
   firebase_auth.User? _user;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _listenForAuthChanges();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   // ✅ Listen for authentication changes and rebuild UI when user logs in
   void _listenForAuthChanges() {
     firebase_auth.FirebaseAuth.instance.authStateChanges().listen((user) {
-      setState(() {
-        _user = user;
-      });
+      if (mounted) {
+        setState(() {
+          _user = user;
+        });
+      }
     });
+  }
+
+  // ✅ Detect when app comes back from the background
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _user != null) {
+      print("🔄 App resumed. Resetting session timeout.");
+      setState(() {}); // Forces rebuild and restarts `SessionTimeOutListener`
+    }
   }
 
   @override
@@ -164,11 +184,6 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
           // 2️⃣ Disconnect from Stream Chat
           await widget.client.disconnectUser();
           print("✅ Stream Chat user disconnected.");
-
-          // 3️⃣ Clear user session storage (if applicable)
-          // Example: If you're storing user details in shared preferences, clear them
-          // final prefs = await SharedPreferences.getInstance();
-          // await prefs.clear();
 
           print("✅ Session completely cleared.");
 
@@ -205,7 +220,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
     }
 
     try {
-      final dio = Dio(BaseOptions(connectTimeout: Duration(milliseconds: 5000), receiveTimeout: Duration(milliseconds: 5000)));
+      final dio = Dio();
       print("🔹 Requesting Stream Chat token for $streamId...");
 
       final response = await dio.post(
@@ -216,11 +231,9 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
       print("🔹 Backend response: ${response.data}");
 
       if (response.statusCode == 200 && response.data['token'] != null) {
-        final token = response.data['token'];
-
         await client.connectUser(
           User(id: streamId, name: user.displayName ?? user.email ?? 'Anonymous'),
-          token,
+          response.data['token'],
         );
 
         print("✅ Stream Chat user connected successfully!");
