@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:dio/dio.dart';
 import '../screens/chat_screen.dart';
+import '../services/stream_chat_service.dart';
 
 class UserSearchScreen extends StatefulWidget {
   final StreamChatClient client;
@@ -15,34 +16,77 @@ class UserSearchScreen extends StatefulWidget {
 class _UserSearchScreenState extends State<UserSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<User> _searchResults = [];
-  final String backendUrl = 'http://192.168.79.14:3000'; // Backend URL
+  bool _isLoading = false;
+  String _error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllUsers(); // Fetch all users initially
+  }
+
+  /// 🔹 Fetch all users
+  Future<void> _fetchAllUsers() async {
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    try {
+      final currentUser = widget.client.state.currentUser;
+      if (currentUser == null) throw Exception("Current user is null.");
+
+      final response = await widget.client.queryUsers(
+        filter: Filter.notEqual('id', currentUser.id),
+        pagination: PaginationParams(limit: 50),
+      );
+
+      setState(() {
+        _searchResults = response.users;
+        _isLoading = false;
+      });
+
+      print("✅ Loaded ${_searchResults.length} users.");
+    } catch (e) {
+      setState(() {
+        _error = "Failed to load users.";
+        _isLoading = false;
+      });
+      print("❌ Error fetching users: $e");
+    }
+  }
 
   /// 🔍 Search Users
   Future<void> _searchUsers(String query) async {
-    if (query.isEmpty) return;
+    if (query.isEmpty) {
+      _fetchAllUsers(); // Reset to all users if search is cleared
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     try {
-      print("🔹 Searching users with query: $query");
-
       final response = await widget.client.queryUsers(
-        filter: Filter.and([
-          Filter.autoComplete('name', query),
-          Filter.notEqual('id', widget.client.state.currentUser?.id ?? ''),
-        ]),
+        filter: Filter.autoComplete('name', query),
         pagination: PaginationParams(limit: 10),
       );
 
       setState(() {
         _searchResults = response.users;
+        _isLoading = false;
       });
 
       print("✅ Found ${_searchResults.length} users.");
     } catch (e) {
+      setState(() {
+        _error = "Search failed.";
+        _isLoading = false;
+      });
       print("❌ Error searching users: $e");
     }
   }
 
-  /// 🔹 Start Chat with Selected User
+  /// 🔹 Start Chat with Selected User (Added this method)
   Future<void> _startChat(User selectedUser) async {
     final currentUser = widget.client.state.currentUser;
     if (currentUser == null) {
@@ -51,40 +95,31 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     }
 
     try {
-      print("🔹 Checking for existing chat with ${selectedUser.id}...");
-
-      final List<Channel> existingChannels = await widget.client.queryChannels(
-        filter: Filter.and([
-          Filter.equal('type', 'messaging'),
-          Filter.in_('members', [currentUser.id, selectedUser.id]),
-        ]),
-        watch: true, // ✅ Ensure visibility
-      ).first;
-
-      Channel channel;
-      if (existingChannels.isNotEmpty) {
-        channel = existingChannels.first;
-        print("🔄 Existing channel found: ${channel.id}");
-      } else {
-        channel = widget.client.channel(
-          'messaging',
-          id: '${currentUser.id}_${selectedUser.id}',
-          extraData: {
-            'members': [currentUser.id, selectedUser.id], // ✅ Force add members
-            'created_by_id': currentUser.id, // ✅ Ensure ownership
-          },
-        );
-        await channel.create();
-        await channel.watch(); // ✅ Ensure updates
-        print("✅ New channel created: ${channel.id}");
-      }
-
-      // ✅ Navigate to Chat Screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ChatScreen(channel: channel),
-        ),
+      print("🔹 Fetching Stream token from backend...");
+      final dio = Dio();
+      final response = await dio.post(
+        'http://192.168.79.14:3000/generate-token', // ✅ Replace with your backend URL
+        data: {'userId': currentUser.id, 'email': currentUser.extraData['email'] ?? ''},
       );
+
+      if (response.statusCode == 200 && response.data['token'] != null) {
+        final streamToken = response.data['token'];
+        print("✅ Token received: $streamToken");
+
+        // ✅ Initialize Stream Chat Client
+        await StreamChatService.initializeStreamChatClient(streamToken, currentUser.id, currentUser.name);
+
+        print("🔹 Creating or fetching chat with ${selectedUser.id}...");
+        final channel = await StreamChatService.createChannel(currentUser.id, selectedUser.id);
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(channel: channel),
+          ),
+        );
+      } else {
+        print("❌ Failed to fetch token from backend.");
+      }
     } catch (e) {
       print("❌ Error starting chat: $e");
     }
@@ -103,22 +138,31 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
           onChanged: _searchUsers,
         ),
       ),
-      body: _searchResults.isEmpty
-          ? const Center(child: Text("No users found"))
-          : ListView.builder(
-              itemCount: _searchResults.length,
-              itemBuilder: (context, index) {
-                final user = _searchResults[index];
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error.isNotEmpty
+              ? Center(child: Text(_error, style: const TextStyle(color: Colors.red)))
+              : _searchResults.isEmpty
+                  ? const Center(child: Text("No users found"))
+                  : ListView.builder(
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final user = _searchResults[index];
+                        // final email = user.extraData['email'] as String? ?? ''; // ✅ Show email
 
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: NetworkImage(user.extraData['image'] as String? ?? ''),
-                  ),
-                  title: Text(user.name),
-                  onTap: () => _startChat(user),
-                );
-              },
-            ),
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: NetworkImage(user.extraData['image'] as String? ?? ''),
+                          ),
+                          // title: Text(user.name),
+                          title: Text(user.name
+                                    // user.name.contains('@') || user.name.length < 15 ? user.name : email, // ✅ Show name or email
+                                  ),
+                                  // subtitle: Text(email), // ✅ Always show email as subtitle
+                          onTap: () => _startChat(user), // ✅ Now calls the defined method
+                        );
+                      },
+                    ),
     );
   }
 }

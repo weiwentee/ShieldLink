@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import '../../../widgets/masked_chat_wrapper.dart'; // Import MaskedChatWrapper
+import '../../../widgets/masked_chat_wrapper.dart';
+import '../../../widgets/mask_message.dart';
 
 class ChannelPage extends StatelessWidget {
   const ChannelPage({Key? key}) : super(key: key);
@@ -17,6 +18,13 @@ class ChannelPage extends StatelessWidget {
                 threadBuilder: (_, parentMessage) => ThreadPage(
                   parent: parentMessage!,
                 ),
+                messageBuilder: (context, message, index, defaultWidget) {
+                  // Only apply MaskMessage if it's a text message (no attachments)
+                  if (message.message.attachments.isEmpty) {
+                    return MaskMessage(message: message.message);
+                  }
+                  return defaultWidget;
+                },
               ),
             ),
             const StreamMessageInput(),
@@ -57,6 +65,13 @@ class _ThreadPageState extends State<ThreadPage> {
             Expanded(
               child: StreamMessageListView(
                 parentMessage: widget.parent,
+                messageBuilder: (context, message, index, defaultWidget) {
+                  // Only apply MaskMessage if it's a text message (no attachments)
+                  if (message.message.attachments.isEmpty) {
+                    return MaskMessage(message: message.message);
+                  }
+                  return defaultWidget;
+                },
               ),
             ),
             StreamMessageInput(

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream_chat; // Alias for StreamChat User
 import 'package:shieldlink/pages/messages_page.dart';
-import 'package:shieldlink/pages/notifications_page.dart';
-import 'package:shieldlink/pages/calls_page.dart';
 import 'package:shieldlink/pages/contacts_page.dart';
 import 'package:shieldlink/widgets/icon_buttons.dart';
 import 'package:shieldlink/screens/profile_screen.dart';
@@ -36,8 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _checkAuthentication(); // Check authentication status
 
     _fetchChannels();
+
     final client = StreamChat.of(context).client;
 
+    // Listen for channel updates in real time
     client.on(EventType.channelUpdated).listen((_) {
       _fetchChannels();
     });
@@ -110,8 +110,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final pageTitles = const [
     'Messages',
-    'Notifications',
-    'Calls',
     'Contacts',
   ];
 
@@ -120,8 +118,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return [
       MessagesPage(channels: channelsList),
-      NotificationsPage(),
-      CallsPage(),
       ContactsPage(client: client),
     ];
   }
@@ -157,11 +153,24 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 24.0),
-            child: StreamBuilder<stream_chat.User?>( 
+            child: StreamBuilder<User?>(
               stream: StreamChat.of(context).client.state.currentUserStream,
               builder: (context, snapshot) {
                 final user = snapshot.data;
 
+                return GestureDetector(
+                  onTap: user != null
+                      ? () => Navigator.of(context).push(ProfileScreen.route)
+                      : null, // Disable if user is null
+                  child: user != null && user.image != null
+                      ? Avatar.small(url: user.image!)
+                      : const CircleAvatar(
+                          backgroundColor: Colors.grey, // Placeholder color
+                          child: Icon(Icons.person, color: Colors.white), // Default icon
+                        ),
+                );
+              },
+            ),
                 return GestureDetector(
                   onTap: user != null
                       ? () => Navigator.of(context).push(ProfileScreen.route)
@@ -230,17 +239,10 @@ class __BottomNavigationBarState extends State<_BottomNavigationBar> {
             children: [
               _NavigationBarItem(
                 index: 0,
-                lable: 'Messages',
+                label: 'Messages',
                 icon: Icons.message,
                 isSelected: selectedIndex == 0,
-                OnTap: handleItemsSelected,
-              ),
-              _NavigationBarItem(
-                index: 1,
-                lable: 'Notifications',
-                icon: Icons.notifications,
-                isSelected: selectedIndex == 1,
-                OnTap: handleItemsSelected,
+                onTap: handleItemsSelected,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -264,18 +266,11 @@ class __BottomNavigationBarState extends State<_BottomNavigationBar> {
                 ),
               ),
               _NavigationBarItem(
-                index: 2,
-                lable: 'Calls',
-                icon: Icons.call,
-                isSelected: selectedIndex == 2,
-                OnTap: handleItemsSelected,
-              ),
-              _NavigationBarItem(
-                index: 3,
-                lable: 'Contacts',
+                index: 1,
+                label: 'Contacts',
                 icon: Icons.contacts,
-                isSelected: selectedIndex == 3,
-                OnTap: handleItemsSelected,
+                isSelected: selectedIndex == 1,
+                onTap: handleItemsSelected,
               ),
             ],
           ),
@@ -289,24 +284,24 @@ class _NavigationBarItem extends StatelessWidget {
   const _NavigationBarItem({
     Key? key,
     required this.index,
-    required this.lable,
+    required this.label,
     required this.icon,
     this.isSelected = false,
-    required this.OnTap,
+    required this.onTap,
   }) : super(key: key);
 
   final int index;
-  final String lable;
+  final String label;
   final IconData icon;
   final bool isSelected;
-  final ValueChanged<int> OnTap;
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        OnTap(index);
+        onTap(index);
       },
       child: SizedBox(
         width: 70,
@@ -320,7 +315,7 @@ class _NavigationBarItem extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              lable,
+              label,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

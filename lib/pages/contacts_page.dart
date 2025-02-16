@@ -74,7 +74,7 @@ class _ContactsPageState extends State<ContactsPage> {
         print("✅ Token received: $streamToken");
 
         // ✅ Initialize Stream Chat Client
-        await StreamChatService.initializeStreamChatClient(streamToken, currentUser.id);
+        await StreamChatService.initializeStreamChatClient(streamToken, currentUser.id, currentUser.name);
 
         print("🔹 Creating or fetching chat with ${selectedUser.id}...");
         final channel = await StreamChatService.createChannel(currentUser.id, selectedUser.id);
@@ -103,14 +103,17 @@ class _ContactsPageState extends State<ContactsPage> {
                   itemCount: _users.length,
                   itemBuilder: (context, index) {
                     final user = _users[index];
+                    // final email = user.extraData['email'] as String? ?? ''; // ✅ Show email
 
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: NetworkImage(user.extraData['image'] as String? ?? ''),
                         child: user.extraData['image'] == null ? const Icon(Icons.person) : null,
                       ),
-                      title: Text(user.name),
-                      // subtitle: Text('@${user.id}'),
+                      title: Text( user.name
+                                    // user.name.contains('@') || user.name.length < 15 ? user.name : email, // ✅ Show name or email
+                                  ),
+                                  // subtitle: Text(email), // ✅ Always show email as subtitle
                       onTap: () => _startChat(user),
                     );
                   },

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui'; // Import this for blur effect
 import 'package:flutter/material.dart';
 
 class MaskedChatWrapper extends StatefulWidget {
@@ -63,9 +64,12 @@ class _MaskedChatWrapperState extends State<MaskedChatWrapper> {
           if (_isScreenInactive)
             GestureDetector(
               onTap: _resetInactivityTimer, // Tap anywhere to resume
-              child: Container(
-                color: Colors.black.withOpacity(1.0), // Dark overlay effect
-                alignment: Alignment.center,
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), // 🔹 Apply blur effect
+                child: Container(
+                  color: Colors.black.withOpacity(0.2), // Semi-transparent overlay
+                  alignment: Alignment.center,
+                ),
               ),
             ),
         ],
