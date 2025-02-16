@@ -87,11 +87,11 @@ class _ChannelListPageState extends State<ChannelListPage> {
   Widget _channelTileBuilder(BuildContext context, List<Channel> channels,
       int index, StreamChannelListTile defaultChannelTile) {
     final channel = channels[index];
-    final lastMessage = channel.state?.messages.reversed.firstWhereOrNull(
-      (message) => !message.isDeleted,
-    );
+    // final lastMessage = channel.state?.messages.reversed.firstWhereOrNull(
+    //   (message) => !message.isDeleted,
+    // );
 
-    final subtitle = lastMessage == null ? 'nothing yet' : lastMessage.text!;
+    // final subtitle = lastMessage == null ? 'nothing yet' : lastMessage.text!;
     final opacity = (channel.state?.unreadCount ?? 0) > 0 ? 1.0 : 0.5;
 
     final theme = StreamChatTheme.of(context);
@@ -124,7 +124,7 @@ class _ChannelListPageState extends State<ChannelListPage> {
           color: theme.colorTheme.textHighEmphasis.withOpacity(opacity),
         ),
       ),
-      subtitle: Text(subtitle),
+      // subtitle: Text(subtitle),
       trailing: channel.state!.unreadCount > 0
           ? CircleAvatar(
               radius: 10,
