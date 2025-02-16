@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream_chat; // Alias for StreamChat User
 import 'package:shieldlink/pages/messages_page.dart';
 import 'package:shieldlink/pages/notifications_page.dart';
 import 'package:shieldlink/pages/calls_page.dart';
@@ -10,6 +10,12 @@ import 'package:shieldlink/widgets/glowing_action_button.dart';
 import 'package:shieldlink/widgets/avatar.dart';
 import 'package:shieldlink/screens/user_search.dart';
 import 'package:shieldlink/theme.dart';
+import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart'; // Added for login screen
+import 'package:shieldlink/screens/login_screen.dart'; // Added for login screen
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth
+import 'package:stream_chat_flutter/stream_chat_flutter.dart'; // Stream Chat
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth; // Alias Firebase Auth User
+import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart' as auth_page; // Alias for LoginPage
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -22,15 +28,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final ValueNotifier<int> pageIndex = ValueNotifier(0);
   final ValueNotifier<String> title = ValueNotifier('Messages');
   List<Channel> channelsList = [];
+  final FirebaseAuth _auth = FirebaseAuth.instance; // FirebaseAuth instance
 
   @override
   void initState() {
     super.initState();
+    _checkAuthentication(); // Check authentication status
+
     _fetchChannels();
-    
     final client = StreamChat.of(context).client;
-    
-    // Listen for channel updates in real time
+
     client.on(EventType.channelUpdated).listen((_) {
       _fetchChannels();
     });
@@ -39,18 +46,54 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  /// **Check if the user is authenticated**
+  void _checkAuthentication() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      Future.microtask(() {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => auth_page.LoginPage()), // Redirect to login
+        );
+      });
+    } else {
+      // Optionally, verify user email or username again to ensure correctness
+      _verifyUserAccount(user);
+    }
+  }
+
+  /// **Verify the current authenticated user**
+  Future<void> _verifyUserAccount(firebase_auth.User user) async {
+    // Here, you can check user email/username or perform any additional checks
+    if (user.email == null || user.email == "") {
+      // If the email is null or not set, you can sign out or take further action
+      await _auth.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => auth_page.LoginPage()), // Redirect to login
+      );
+    }
+  }
+
+  /// **Fetch channels based on authenticated user**
   Future<void> _fetchChannels() async {
     final client = StreamChat.of(context).client;
-    final filter = Filter.in_('members', [StreamChat.of(context).currentUser!.id]);
+    final user = _auth.currentUser; // Get logged-in user
+
+    if (user == null) return; // Prevent fetching if user is null
+
+    final filter = Filter.in_('members', [user.uid]);
     final sort = [SortOption<ChannelState>('last_message_at')];
 
     try {
-      final channels = await client.queryChannels(
-        filter: filter,
-        channelStateSort: sort,
-        watch: true,
-        state: true,
-      ).toList();
+      final channels = await client
+          .queryChannels(
+            filter: filter,
+            channelStateSort: sort,
+            watch: true,
+            state: true,
+          )
+          .toList();
 
       setState(() {
         channelsList = channels.expand((channelList) => channelList).toList();
@@ -73,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   List<Widget> _buildPages(BuildContext context) {
-    final client = StreamChat.of(context).client; // ✅ Get Stream Chat Client
+    final client = StreamChat.of(context).client; // Get Stream Chat Client
 
     return [
       MessagesPage(channels: channelsList),
@@ -114,24 +157,24 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 24.0),
-            child: StreamBuilder<User?>(
-            stream: StreamChat.of(context).client.state.currentUserStream,
-            builder: (context, snapshot) {
-              final user = snapshot.data;
+            child: StreamBuilder<stream_chat.User?>( 
+              stream: StreamChat.of(context).client.state.currentUserStream,
+              builder: (context, snapshot) {
+                final user = snapshot.data;
 
-              return GestureDetector(
-                onTap: user != null
-                    ? () => Navigator.of(context).push(ProfileScreen.route)
-                    : null, // Disable if user is null
-                child: user != null && user.image != null
-                    ? Avatar.small(url: user.image!)
-                    : const CircleAvatar(
-                        backgroundColor: Colors.grey, // Placeholder color
-                        child: Icon(Icons.person, color: Colors.white), // Default icon
-                      ),
-              );
-            },
-          ),
+                return GestureDetector(
+                  onTap: user != null
+                      ? () => Navigator.of(context).push(ProfileScreen.route)
+                      : null, // Disable if user is null
+                  child: user != null && user.image != null
+                      ? Avatar.small(url: user.image!)
+                      : const CircleAvatar(
+                          backgroundColor: Colors.grey, // Placeholder color
+                          child: Icon(Icons.person, color: Colors.white), // Default icon
+                        ),
+                );
+              },
+            ),
           ),
         ],
       ),

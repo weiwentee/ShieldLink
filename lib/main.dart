@@ -19,6 +19,8 @@ import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
 
 
+
+
 // 🔥 Firebase web configuration
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
@@ -132,13 +134,14 @@ class AuthenticationWrapper extends StatefulWidget {
 class _AuthenticationWrapperState extends State<AuthenticationWrapper> with WidgetsBindingObserver {
   firebase_auth.User? _user;
   final LocalAuthentication localAuth = LocalAuthentication();
-  bool _isAuthenticated = false;
+  bool _isAuthenticated = true ;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _listenForAuthChanges();
+    _listenForAuthChanges(); // Listen for authentication changes
+    _checkAuthentication(); // Check authentication status at startup
   }
 
   @override
@@ -156,6 +159,36 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
         });
       }
     });
+  }
+
+  /// **Check if the user is authenticated**
+  void _checkAuthentication() {
+    final firebase_auth.User? user = firebase_auth.FirebaseAuth.instance.currentUser; // Check the current user
+    if (user == null) {
+      // If the user is not logged in, redirect to login page
+      Future.microtask(() {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()), // Redirect to login
+        );
+      });
+    } else {
+      // Optionally, verify user email or username again to ensure correctness
+      _verifyUserAccount(user);
+    }
+  }
+
+  /// **Verify the current authenticated Firebase user**
+  Future<void> _verifyUserAccount(firebase_auth.User user) async {
+    // Here, you can check user email/username or perform any additional checks
+    if (user.email == null || user.email!.isEmpty) {
+      // If the email is null or empty, sign the user out and redirect to login
+      await firebase_auth.FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()), // Redirect to login
+      );
+    }
   }
 
 
