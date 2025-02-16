@@ -33,39 +33,48 @@ class _MaskMessageState extends State<MaskMessage> {
           padding: const EdgeInsets.all(12),
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
           decoration: BoxDecoration(
-            color: isMyMessage ? Colors.blue[200] : Colors.grey[300], // Same as normal message bubble
+            color: isMyMessage ? Colors.blue[200] : Colors.grey[300],
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Stack(
-            alignment: Alignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Hidden Text (Invisible by default)
-              Text(
-                widget.message.text ?? '',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.transparent, // Hide text when masked
-                ),
+              // Message Text with Masking
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Hidden Text (Invisible by default)
+                  Text(
+                    widget.message.text ?? '',
+                    style: const TextStyle(fontSize: 16, color: Colors.transparent),
+                  ),
+
+                  // Covering Blur Effect (No Eye Icon)
+                  if (!_isVisible)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.grey.withOpacity(0.6), // Semi-transparent cover
+                      ),
+                    ),
+
+                  // Actual Text (Visible on Long Press)
+                  if (_isVisible)
+                    Text(
+                      widget.message.text ?? '',
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
+                    ),
+                ],
               ),
 
-              // Covering Blur Effect (No Eye Icon)
-              if (!_isVisible)
-                Positioned.fill(
-                  child: Container(
-                    color: Colors.grey.withOpacity(0.6), // Semi-transparent cover
-                  ),
-                ),
+              const SizedBox(height: 4),
 
-              // Actual Text (Visible on Long Press)
-              if (_isVisible)
-                Text(
-                  widget.message.text ?? '',
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                ),
             ],
           ),
         ),
       ),
     );
   }
+
+
 }

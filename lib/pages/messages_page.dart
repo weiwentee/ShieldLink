@@ -113,7 +113,7 @@ class _MessagesPageState extends State<MessagesPage> {
                 ),
               ),
               title: Text(channelName),
-              subtitle: Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
+              // subtitle: Text(lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () => _editChannelName(channel), // Open edit dialog
