@@ -18,15 +18,14 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   List<User> _searchResults = [];
   bool _isLoading = false;
   String _error = '';
-  final String backendUrl = 'http://192.168.79.14:3000'; // Backend URL
 
   @override
   void initState() {
     super.initState();
-    _fetchAllUsers(); // Fetch all users on init
+    _fetchAllUsers(); // Fetch all users initially
   }
 
-  /// 🔹 Fetch all users (like ContactsPage)
+  /// 🔹 Fetch all users
   Future<void> _fetchAllUsers() async {
     setState(() {
       _isLoading = true;
@@ -87,7 +86,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     }
   }
 
-  /// 🔹 Start Chat with Selected User
+  /// 🔹 Start Chat with Selected User (Added this method)
   Future<void> _startChat(User selectedUser) async {
     final currentUser = widget.client.state.currentUser;
     if (currentUser == null) {
@@ -99,7 +98,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
       print("🔹 Fetching Stream token from backend...");
       final dio = Dio();
       final response = await dio.post(
-        '$backendUrl/generate-token',
+        'http://192.168.79.14:3000/generate-token', // ✅ Replace with your backend URL
         data: {'userId': currentUser.id, 'email': currentUser.extraData['email'] ?? ''},
       );
 
@@ -108,7 +107,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         print("✅ Token received: $streamToken");
 
         // ✅ Initialize Stream Chat Client
-        await StreamChatService.initializeStreamChatClient(streamToken, currentUser.id);
+        await StreamChatService.initializeStreamChatClient(streamToken, currentUser.id, currentUser.name);
 
         print("🔹 Creating or fetching chat with ${selectedUser.id}...");
         final channel = await StreamChatService.createChannel(currentUser.id, selectedUser.id);
@@ -149,13 +148,18 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
                         final user = _searchResults[index];
+                        // final email = user.extraData['email'] as String? ?? ''; // ✅ Show email
 
                         return ListTile(
                           leading: CircleAvatar(
                             backgroundImage: NetworkImage(user.extraData['image'] as String? ?? ''),
                           ),
-                          title: Text(user.name),
-                          onTap: () => _startChat(user),
+                          // title: Text(user.name),
+                          title: Text(user.name
+                                    // user.name.contains('@') || user.name.length < 15 ? user.name : email, // ✅ Show name or email
+                                  ),
+                                  // subtitle: Text(email), // ✅ Always show email as subtitle
+                          onTap: () => _startChat(user), // ✅ Now calls the defined method
                         );
                       },
                     ),

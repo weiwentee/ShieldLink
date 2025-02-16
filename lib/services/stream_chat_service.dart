@@ -4,7 +4,7 @@ class StreamChatService {
   static StreamChatClient? client;
 
   /// 🔹 Initialize Stream Chat Client
-  static Future<void> initializeStreamChatClient(String token, String userId) async {
+  static Future<void> initializeStreamChatClient(String token, String userId, String userName) async {
     if (client != null) {
       print("✅ Stream Chat Client already initialized.");
       return;
@@ -20,7 +20,8 @@ class StreamChatService {
         User(
           id: userId,
           extraData: {
-            'name': userId,
+            'name': userName,
+            'email': '$userId@gmail.com',  // 🔹 Store email in extraData
             'image': "https://via.placeholder.com/150", // Default profile picture
           },
         ),

@@ -21,7 +21,7 @@ class UserService {
          final responseData = json.decode(response.body);
         String token = responseData['token']; // Assuming the backend sends the token as 'token'
         print('User data sent to backend successfully');
-      await StreamChatService.initializeStreamChatClient(token, userId);
+      await StreamChatService.initializeStreamChatClient(token, userId, "Unknown User");
         
         print('User data sent to backend and Stream Chat initialized successfully');
       } else {

@@ -1,5 +1,3 @@
-// This screen will display a list of chats
-// chat_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
@@ -8,9 +6,7 @@ import 'settings_page.dart';
 import 'profile_page.dart';
 
 class ChannelListPage extends StatefulWidget {
-  const ChannelListPage({
-    Key? key,
-  }) : super(key: key);
+  const ChannelListPage({Key? key}) : super(key: key);
 
   @override
   State<ChannelListPage> createState() => _ChannelListPageState();
@@ -100,6 +96,15 @@ class _ChannelListPageState extends State<ChannelListPage> {
 
     final theme = StreamChatTheme.of(context);
 
+    // 🔹 Get other user's info (email & name)
+    final otherUser = channel.state?.members
+        .where((member) => member.userId != StreamChat.of(context).currentUser!.id)
+        .firstOrNull
+        ?.user;
+    
+    final otherUserName = otherUser?.name ?? "Unknown";
+    final otherUserEmail = otherUser?.extraData['email'] as String? ?? "No Email";
+
     return ListTile(
       onTap: () {
         Navigator.push(
@@ -112,12 +117,10 @@ class _ChannelListPageState extends State<ChannelListPage> {
           ),
         );
       },
-      leading: StreamChannelAvatar(
-        channel: channel,
-      ),
-      title: StreamChannelName(
-        channel: channel,
-        textStyle: theme.channelPreviewTheme.titleStyle!.copyWith(
+      leading: StreamChannelAvatar(channel: channel),
+      title: Text(
+        '$otherUserName ($otherUserEmail)', // 🔹 Display Name & Email
+        style: theme.channelPreviewTheme.titleStyle!.copyWith(
           color: theme.colorTheme.textHighEmphasis.withOpacity(opacity),
         ),
       ),
