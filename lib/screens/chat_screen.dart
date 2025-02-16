@@ -39,7 +39,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     return true; // Regular text messages are always visible
                   },
                   messageBuilder: (context, message, index, defaultWidget) {
-                    return MaskMessage(message: message.message);
+                    // Apply masking only to text messages (no attachments)
+                    if (message.message.attachments.isEmpty) {
+                      return MaskMessage(message: message.message);
+                    }
+                    return defaultWidget;
                   },
                 ),
               ),
@@ -58,8 +62,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     }
                   }
 
-                  // Keep the message masking functionality
-                  extraData['mask_message'] = true;
+                  // Only apply masking for text messages (no attachments)
+                  if (message.attachments.isEmpty) {
+                    extraData['mask_message'] = true;
+                  }
 
                   return message.copyWith(extraData: extraData);
                 },
@@ -105,7 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
           attachments: [attachment],
         ).copyWith(extraData: {
           if (expiryTime != null) 'expires_at': expiryTime,
-          'mask_message': true,
+          // Masking is NOT applied to files
         });
 
         await widget.channel.sendMessage(message);
