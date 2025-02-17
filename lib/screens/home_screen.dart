@@ -153,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 24.0),
-            child: StreamBuilder<User?>(
+            child: StreamBuilder<stream_chat.User?>(
               stream: StreamChat.of(context).client.state.currentUserStream,
               builder: (context, snapshot) {
                 final user = snapshot.data;
@@ -171,20 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-                return GestureDetector(
-                  onTap: user != null
-                      ? () => Navigator.of(context).push(ProfileScreen.route)
-                      : null, // Disable if user is null
-                  child: user != null && user.image != null
-                      ? Avatar.small(url: user.image!)
-                      : const CircleAvatar(
-                          backgroundColor: Colors.grey, // Placeholder color
-                          child: Icon(Icons.person, color: Colors.white), // Default icon
-                        ),
-                );
-              },
             ),
-          ),
         ],
       ),
       body: ValueListenableBuilder(

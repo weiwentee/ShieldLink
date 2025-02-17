@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import '../../../widgets/masked_chat_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../widgets/mask_message.dart';
+import 'package:shieldlink/features/security/theft_detection.dart'; // Import TheftDetection to call cooldown
+import 'fake_chat_screen.dart'; // ✅ Import the fake screen
 
 class ChatScreen extends StatefulWidget {
   final Channel channel;
@@ -24,70 +26,79 @@ class _ChatScreenState extends State<ChatScreen> {
       child: MaskedChatWrapper(
         child: Scaffold(
           appBar: StreamChannelHeader(),
-          body: Column(
-            children: [
-              Expanded(
-                child: StreamMessageListView(
-                  messageFilter: (message) {
-                    // Apply expiry filtering only to file attachments
+          body: GestureDetector(
+            onDoubleTap: () { // ✅ Detect double-tap and switch to Fake Screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FakeChatScreen()),
+              );
+            },
+            child: Column(
+              children: [
+                Expanded(
+                  child: StreamMessageListView(
+                    messageFilter: (message) {
+                      // Apply expiry filtering only to file attachments
+                      if (message.attachments.isNotEmpty) {
+                        final expiresAt = message.extraData['expires_at'];
+                        if (expiresAt != null && expiresAt is int) {
+                          return DateTime.now().millisecondsSinceEpoch < expiresAt;
+                        }
+                      }
+                      return true; // Regular text messages are always visible
+                    },
+                    messageBuilder: (context, message, index, defaultWidget) {
+                      // Apply masking only to text messages (no attachments)
+                      if (message.message.attachments.isEmpty) {
+                        return MaskMessage(message: message.message);
+                      }
+                      return defaultWidget;
+                    },
+                  ),
+                ),
+                StreamMessageInput(
+                  preMessageSending: (message) async {
+                    Map<String, Object?> extraData = {...message.extraData};
+
+                    // Apply expiry only for file attachments
                     if (message.attachments.isNotEmpty) {
-                      final expiresAt = message.extraData['expires_at'];
-                      if (expiresAt != null && expiresAt is int) {
-                        return DateTime.now().millisecondsSinceEpoch < expiresAt;
+                      int? expiryMinutes = await _showExpiryDialog(context);
+                      if (expiryMinutes != null) {
+                        final expiryTime = DateTime.now()
+                            .add(Duration(minutes: expiryMinutes))
+                            .millisecondsSinceEpoch;
+                        extraData['expires_at'] = expiryTime;
                       }
                     }
-                    return true; // Regular text messages are always visible
-                  },
-                  messageBuilder: (context, message, index, defaultWidget) {
-                    // Apply masking only to text messages (no attachments)
-                    if (message.message.attachments.isEmpty) {
-                      return MaskMessage(message: message.message);
+
+                    // Only apply masking for text messages (no attachments)
+                    if (message.attachments.isEmpty) {
+                      extraData['mask_message'] = true;
                     }
-                    return defaultWidget;
+
+                    return message.copyWith(extraData: extraData);
+                  },
+                  attachmentButtonBuilder: (context, onPressed) {
+                    return IconButton(
+                      icon: const Icon(Icons.attach_file),
+                      onPressed: () async {
+                        await _pickFile();
+                      },
+                    );
                   },
                 ),
-              ),
-              StreamMessageInput(
-                preMessageSending: (message) async {
-                  Map<String, Object?> extraData = {...message.extraData};
-
-                  // Apply expiry only for file attachments
-                  if (message.attachments.isNotEmpty) {
-                    int? expiryMinutes = await _showExpiryDialog(context);
-                    if (expiryMinutes != null) {
-                      final expiryTime = DateTime.now()
-                          .add(Duration(minutes: expiryMinutes))
-                          .millisecondsSinceEpoch;
-                      extraData['expires_at'] = expiryTime;
-                    }
-                  }
-
-                  // Only apply masking for text messages (no attachments)
-                  if (message.attachments.isEmpty) {
-                    extraData['mask_message'] = true;
-                  }
-
-                  return message.copyWith(extraData: extraData);
-                },
-                attachmentButtonBuilder: (context, onPressed) {
-                  return IconButton(
-                    icon: const Icon(Icons.attach_file),
-                    onPressed: () async {
-                      await _pickFile();
-                    },
-                  );
-                },
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  // ✅ FIXED: File Picker now properly prevents theft detection lock
   Future<void> _pickFile() async {
     try {
-      _disableMasking();
+      TheftDetection.of(context)?.startCooldown(); // ✅ Start cooldown to prevent theft detection
 
       FilePickerResult? result = await FilePicker.platform.pickFiles();
 
@@ -111,26 +122,16 @@ class _ChatScreenState extends State<ChatScreen> {
           attachments: [attachment],
         ).copyWith(extraData: {
           if (expiryTime != null) 'expires_at': expiryTime,
-          // Masking is NOT applied to files
         });
 
         await widget.channel.sendMessage(message);
       }
     } catch (e) {
       print("❌ Error picking file: $e");
-    } finally {
-      _enableMasking();
     }
   }
 
-  void _disableMasking() {
-    setState(() => _isMaskingEnabled = false);
-  }
-
-  void _enableMasking() {
-    setState(() => _isMaskingEnabled = true);
-  }
-
+  // ✅ NO CHANGES TO EXPIRY TIME PICKER LOGIC
   Future<int?> _showExpiryDialog(BuildContext context) async {
     Duration selectedDuration = const Duration(minutes: 5);
 

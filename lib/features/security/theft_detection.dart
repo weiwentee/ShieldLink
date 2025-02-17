@@ -7,20 +7,26 @@ import 'package:shieldlink/features/authentication/screens/pages/login_screen.da
 
 class TheftDetection extends StatefulWidget {
   final Widget child;
+  static TheftDetectionState? of(BuildContext context) {
+    return context.findAncestorStateOfType<TheftDetectionState>();
+  }
 
   const TheftDetection({Key? key, required this.child}) : super(key: key);
 
   @override
-  State<TheftDetection> createState() => _TheftDetectionState();
+  State<TheftDetection> createState() => TheftDetectionState();
 }
 
-class _TheftDetectionState extends State<TheftDetection> with WidgetsBindingObserver {
-  double threshold = 15.0; // Sensitivity threshold
-  double spikeThreshold = 10.0; // Sudden spike threshold
+class TheftDetectionState extends State<TheftDetection> with WidgetsBindingObserver {
+  double threshold = 100.0; 
+  double spikeThreshold = 10.0; 
   bool isLocked = false;
-  DateTime? lastHighMovementTime; // For grace period
-  final int gracePeriodMilliseconds = 2000; // 2-second grace period
+  bool _ignoreMovement = false; 
+  DateTime? lastHighMovementTime; 
+  final int gracePeriodMilliseconds = 2000; 
+  final int cooldownMilliseconds = 5000;
   double lastMovement = 0.0;
+  StreamSubscription? _accelerometerSubscription;
 
   @override
   void initState() {
@@ -36,13 +42,11 @@ class _TheftDetectionState extends State<TheftDetection> with WidgetsBindingObse
     super.dispose();
   }
 
-StreamSubscription? _accelerometerSubscription; // Subscription for accelerometer events
-
   void _startMonitoring() {
     List<double> recentMovements = [];
-    const int bufferSize = 10; // Buffer for averaging
+    const int bufferSize = 10;
 
-    _accelerometerSubscription = SensorsPlatform.instance.accelerometerEvents.listen((AccelerometerEvent event) {
+    _accelerometerSubscription = SensorsPlatform.instance.accelerometerEvents.listen((event) {
       if (!mounted) return;
 
       try {
@@ -51,7 +55,11 @@ StreamSubscription? _accelerometerSubscription; // Subscription for acceleromete
 
         print('Detected movement: $movement');
 
-        // Store movement history for better detection
+        if (_ignoreMovement) {
+          print("📂 File just selected, ignoring movement temporarily...");
+          return;
+        }
+
         if (recentMovements.length >= bufferSize) {
           recentMovements.removeAt(0);
         }
@@ -59,14 +67,12 @@ StreamSubscription? _accelerometerSubscription; // Subscription for acceleromete
 
         double avgMovement = recentMovements.reduce((a, b) => a + b) / recentMovements.length;
 
-        // Check for consistent high movement over grace period
         if (avgMovement > threshold) {
           lastHighMovementTime ??= DateTime.now();
         } else {
           lastHighMovementTime = null;
         }
 
-        // If movement remains high for the grace period, trigger lock
         if (lastHighMovementTime != null &&
             DateTime.now().difference(lastHighMovementTime!) > Duration(milliseconds: gracePeriodMilliseconds) &&
             !isLocked) {
@@ -74,7 +80,6 @@ StreamSubscription? _accelerometerSubscription; // Subscription for acceleromete
           _lockDevice();
         }
 
-        // Detect sudden spikes in movement
         if (movementChange > spikeThreshold && !isLocked) {
           print('Sudden movement detected! Locking...');
           _lockDevice();
@@ -102,12 +107,20 @@ StreamSubscription? _accelerometerSubscription; // Subscription for acceleromete
     }
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused && !isLocked) {
-      print('App moved to background. Locking device...');
-      _lockDevice();
-    }
+  // ✅ NEW: Expose `startCooldown()` to be used from other files
+  void startCooldown() {
+    setState(() {
+      _ignoreMovement = true;
+    });
+
+    Future.delayed(Duration(milliseconds: cooldownMilliseconds), () {
+      if (mounted) {
+        setState(() {
+          _ignoreMovement = false;
+        });
+        print("✅ Cooldown ended. Theft detection re-enabled.");
+      }
+    });
   }
 
   @override
