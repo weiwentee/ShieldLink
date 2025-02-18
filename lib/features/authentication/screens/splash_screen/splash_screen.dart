@@ -28,9 +28,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Start the fade-out animation after a 2-second delay
     Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) { // ✅ Ensure widget is still in the tree
+      if (mounted) {
         _controller.forward().whenComplete(() {
-          if (mounted) { // ✅ Ensure widget is still in the tree before navigation
+          if (mounted) { 
             _navigateToNextScreen();
           }
         });
@@ -39,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToNextScreen() {
-    if (mounted) { // ✅ Check again before navigating
+    if (mounted) { 
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => widget.child!),
       );
@@ -55,27 +55,25 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Set background to white
+      backgroundColor: Colors.white,
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // SVG Image
               SvgPicture.asset(
-                'assets/logos/main logo.svg', // Path to your SVG file
-                width: 150, // Adjust width as needed
-                height: 150, // Adjust height as needed
+                'assets/logos/main logo.svg', 
+                width: 150,
+                height: 150,
               ),
               const SizedBox(height: 20),
-              // Welcome Text
               const Text(
                 "Welcome to ShieldLink!",
                 style: TextStyle(
                   color: Colors.blue,
                   fontWeight: FontWeight.bold,
-                  fontSize: 24, // Adjust font size as needed
+                  fontSize: 24,
                 ),
               ),
             ],

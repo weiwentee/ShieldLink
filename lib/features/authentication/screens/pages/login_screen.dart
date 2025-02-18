@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,7 +21,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-const String backendUrl = 'http://192.168.1.13:3000';
+const String backendUrl = 'http://192.168.1.13:3000'; // Replace with your backend URL
 
 class _LoginPageState extends State<LoginPage> {
   bool _isSigning = false;

@@ -16,12 +16,9 @@ import 'package:dio/dio.dart';
 import 'package:shieldlink/utils/session_listener.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:flutter/services.dart';
 
 
-
-
-// 🔥 Firebase web configuration
+// Firebase configuration
 const firebaseWebConfig = FirebaseOptions(
   apiKey: "AIzaSyAd4mgByMtt2_s3Arxg_KWLxf9vUq6pZQI",
   authDomain: "shieldlink-b052c.firebaseapp.com",
@@ -33,17 +30,16 @@ const firebaseWebConfig = FirebaseOptions(
 );
 
 const streamApiKey = 'qg3xperd8afd';
-// const backendUrl = 'http://192.168.79.14:3000';
 const backendUrl = 'http://192.168.79.14:3000';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("🔥 Handling background message: ${message.messageId}");
+  print("Handling background message: ${message.messageId}");
 }
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🔍 Initialize Firebase
+  // Initialize Firebase
   if (kIsWeb) {
     await Firebase.initializeApp(options: firebaseWebConfig);
   } else if (io.Platform.isAndroid) {
@@ -77,9 +73,9 @@ Future main() async {
         PushProvider.firebase,
         pushProviderName: "FirebasePushNotifs",
       );
-      print("✅ FCM Token registered with Stream");
+      print("FCM Token registered with Stream");
     } catch (e) {
-      print("❌ Error adding device to Stream: $e");
+      print("Error adding device to Stream: $e");
     }
   }
 
@@ -105,7 +101,7 @@ class ShieldLink extends StatelessWidget {
         GlobalStreamChatLocalizations.delegate,
       ],
       supportedLocales: const [Locale('en')],
-      home: AuthenticationWrapper(client: client), // 🔥 Entry point: AuthenticationWrapper
+      home: AuthenticationWrapper(client: client),
       builder: (context, child) {
         return StreamChat(
           client: client,
@@ -121,7 +117,7 @@ class ShieldLink extends StatelessWidget {
   }
 }
 
-// ✅ Convert AuthenticationWrapper into a StatefulWidget to force UI rebuilds
+// Convert AuthenticationWrapper into a StatefulWidget to force UI rebuilds
 class AuthenticationWrapper extends StatefulWidget {
   final StreamChatClient client;
 
@@ -150,7 +146,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
     super.dispose();
   }
 
-  // ✅ Listen for authentication changes and rebuild UI when user logs in
+  // Listen for authentication changes and rebuild UI when user logs in
   void _listenForAuthChanges() {
     firebase_auth.FirebaseAuth.instance.authStateChanges().listen((user) {
       if (mounted) {
@@ -161,7 +157,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
     });
   }
 
-  /// **Check if the user is authenticated**
+  /// Check if the user is authenticated
   void _checkAuthentication() {
     final firebase_auth.User? user = firebase_auth.FirebaseAuth.instance.currentUser; // Check the current user
     if (user == null) {
@@ -173,14 +169,14 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
         );
       });
     } else {
-      // Optionally, verify user email or username again to ensure correctness
+      // Verify user email or username again to ensure correctness
       _verifyUserAccount(user);
     }
   }
 
-  /// **Verify the current authenticated Firebase user**
+  // Verify the current authenticated Firebase user
   Future<void> _verifyUserAccount(firebase_auth.User user) async {
-    // Here, you can check user email/username or perform any additional checks
+    // Check user email/username
     if (user.email == null || user.email!.isEmpty) {
       // If the email is null or empty, sign the user out and redirect to login
       await firebase_auth.FirebaseAuth.instance.signOut();
@@ -192,12 +188,12 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
   }
 
 
-  // ✅ Detect when app comes back from the background
+  // Detect when app comes back from the background
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _user != null) {
-      print("🔄 App resumed. Resetting session timeout.");
-      setState(() {}); // Forces rebuild and restarts `SessionTimeOutListener`
+      print("App resumed. Resetting session timeout.");
+      setState(() {}); // Forces rebuild and restarts SessionTimeOutListener
     }
   }
 
@@ -207,33 +203,32 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
       return SplashScreen(child: LoginPage());
     }
 
-    print("✅ User is logged in. Starting session timeout listener...");
+    print("User is logged in. Starting session timeout listener...");
 
     return SessionTimeOutListener(
-      // duration: Duration(seconds: 20), // ⏳ Set timeout duration
-      duration: Duration(minutes: 20), // ⏳ Set timeout duration
+      duration: Duration(minutes: 20),
       onTimeOut: () async {
-        print("⚠️ Session expired. Logging out...");
+        print("Session expired. Logging out...");
 
         try {
-          // 1️⃣ Sign out from Firebase
+          // Sign out from Firebase
           await firebase_auth.FirebaseAuth.instance.signOut();
-          print("✅ Firebase sign out successful.");
+          print("Firebase sign out successful.");
 
-          // 2️⃣ Disconnect from Stream Chat
+          // Disconnect from Stream Chat
           await widget.client.disconnectUser();
-          print("✅ Stream Chat user disconnected.");
+          print("Stream Chat user disconnected.");
 
-          print("✅ Session completely cleared.");
+          print("Session completely cleared.");
 
-          // 4️⃣ Redirect user to login page
+          // Redirect user to login page
           if (context.mounted) {
             Future.delayed(Duration.zero, () {
               Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
             });
           }
         } catch (e) {
-          print('❌ Error signing out: $e');
+          print('Error signing out: $e');
         }
       },
       child: FutureBuilder(
@@ -243,14 +238,14 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
             return const Center(child: CircularProgressIndicator());
           }
 
-          // ✅ Wrap HomeScreen with TheftDetection so that Theft Lock works properly
+          // Wrap HomeScreen with TheftDetection so that Theft Lock works properly
           return TheftDetection(child: HomeScreen());
         },
       ),
     );
   }
 
-  // 🔹 Connect user to Stream Chat API
+  // Connect user to Stream Chat API
   Future<void> _connectStreamUser(StreamChatClient client, firebase_auth.User user) async {
     final streamId = user.uid;
 
@@ -260,14 +255,14 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
 
     try {
       final dio = Dio();
-      print("🔹 Requesting Stream Chat token for $streamId...");
+      print("Requesting Stream Chat token for $streamId...");
 
       final response = await dio.post(
         '$backendUrl/generate-token',
         data: {'userId': streamId, 'email': user.email ?? 'anonymous@shieldlink.com'},
       );
 
-      print("🔹 Backend response: ${response.data}");
+      print("Backend response: ${response.data}");
 
       if (response.statusCode == 200 && response.data['token'] != null) {
         await client.connectUser(
@@ -275,12 +270,12 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> with Widg
           response.data['token'],
         );
 
-        print("✅ Stream Chat user connected successfully!");
+        print("Stream Chat user connected successfully!");
       } else {
-        throw Exception("❌ Failed to fetch token from backend.");
+        throw Exception("Failed to fetch token from backend.");
       }
     } catch (e) {
-      print("❌ Error connecting to Stream Chat: $e");
+      print("Error connecting to Stream Chat: $e");
       throw Exception('Stream Chat connection failed.');
     }
   }

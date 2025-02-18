@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
-import '../screens/chat_screen.dart'; // ✅ Import ChatScreen
-import '../services/stream_chat_service.dart'; // ✅ Import StreamChatService
+import '../screens/chat_screen.dart';
+import '../services/stream_chat_service.dart';
 import 'package:dio/dio.dart';
 
 class ContactsPage extends StatefulWidget {
@@ -26,7 +26,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
   Future<void> _fetchUsers() async {
     try {
-      print("🔹 Fetching users from Stream API...");
+      print("Fetching users from Stream API...");
       
       final currentUser = widget.client.state.currentUser;
       if (currentUser == null) {
@@ -34,7 +34,7 @@ class _ContactsPageState extends State<ContactsPage> {
       }
 
       final response = await widget.client.queryUsers(
-        filter: Filter.notEqual('id', currentUser.id), // ✅ Exclude logged-in user
+        filter: Filter.notEqual('id', currentUser.id), // Exclude logged-in user
         pagination: PaginationParams(limit: 50), // Fetch up to 50 users
       );
 
@@ -43,9 +43,9 @@ class _ContactsPageState extends State<ContactsPage> {
         _isLoading = false;
       });
 
-      print("✅ Found ${_users.length} users (excluding self).");
+      print("Found ${_users.length} users (excluding self).");
     } catch (e) {
-      print("❌ Error fetching users: $e");
+      print("Error fetching users: $e");
       setState(() {
         _error = "Failed to load contacts.";
         _isLoading = false;
@@ -53,30 +53,30 @@ class _ContactsPageState extends State<ContactsPage> {
     }
   }
 
-  /// 🔹 Start Chat with Selected User
+  // Start Chat with Selected User
   Future<void> _startChat(User selectedUser) async {
     final currentUser = widget.client.state.currentUser;
     if (currentUser == null) {
-      print("❌ Error: Current user is null.");
+      print("Error: Current user is null.");
       return;
     }
 
     try {
-      print("🔹 Fetching Stream token from backend...");
+      print("Fetching Stream token from backend...");
       final dio = Dio();
       final response = await dio.post(
-        'http://192.168.79.14:3000/generate-token', // ✅ Replace with your backend URL
+        'http://192.168.79.14:3000/generate-token', // Replace with your backend URL
         data: {'userId': currentUser.id, 'email': currentUser.extraData['email'] ?? ''},
       );
 
       if (response.statusCode == 200 && response.data['token'] != null) {
         final streamToken = response.data['token'];
-        print("✅ Token received: $streamToken");
+        print("Token received: $streamToken");
 
-        // ✅ Initialize Stream Chat Client
+        // Initialize Stream Chat Client
         await StreamChatService.initializeStreamChatClient(streamToken, currentUser.id, currentUser.name);
 
-        print("🔹 Creating or fetching chat with ${selectedUser.id}...");
+        print("Creating or fetching chat with ${selectedUser.id}...");
         final channel = await StreamChatService.createChannel(currentUser.id, selectedUser.id);
 
         Navigator.of(context).push(
@@ -85,10 +85,10 @@ class _ContactsPageState extends State<ContactsPage> {
           ),
         );
       } else {
-        print("❌ Failed to fetch token from backend.");
+        print("Failed to fetch token from backend.");
       }
     } catch (e) {
-      print("❌ Error starting chat: $e");
+      print("Error starting chat: $e");
     }
   }
 
@@ -103,17 +103,13 @@ class _ContactsPageState extends State<ContactsPage> {
                   itemCount: _users.length,
                   itemBuilder: (context, index) {
                     final user = _users[index];
-                    // final email = user.extraData['email'] as String? ?? ''; // ✅ Show email
 
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundImage: NetworkImage(user.extraData['image'] as String? ?? ''),
                         child: user.extraData['image'] == null ? const Icon(Icons.person) : null,
                       ),
-                      title: Text( user.name
-                                    // user.name.contains('@') || user.name.length < 15 ? user.name : email, // ✅ Show name or email
-                                  ),
-                                  // subtitle: Text(email), // ✅ Always show email as subtitle
+                      title: Text(user.name),
                       onTap: () => _startChat(user),
                     );
                   },

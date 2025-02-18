@@ -25,7 +25,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     _fetchAllUsers(); // Fetch all users initially
   }
 
-  /// 🔹 Fetch all users
+  // Fetch all users
   Future<void> _fetchAllUsers() async {
     setState(() {
       _isLoading = true;
@@ -46,17 +46,17 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         _isLoading = false;
       });
 
-      print("✅ Loaded ${_searchResults.length} users.");
+      print("Loaded ${_searchResults.length} users.");
     } catch (e) {
       setState(() {
         _error = "Failed to load users.";
         _isLoading = false;
       });
-      print("❌ Error fetching users: $e");
+      print("Error fetching users: $e");
     }
   }
 
-  /// 🔍 Search Users
+  // Search Users
   Future<void> _searchUsers(String query) async {
     if (query.isEmpty) {
       _fetchAllUsers(); // Reset to all users if search is cleared
@@ -76,40 +76,40 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         _isLoading = false;
       });
 
-      print("✅ Found ${_searchResults.length} users.");
+      print("Found ${_searchResults.length} users.");
     } catch (e) {
       setState(() {
         _error = "Search failed.";
         _isLoading = false;
       });
-      print("❌ Error searching users: $e");
+      print("Error searching users: $e");
     }
   }
 
-  /// 🔹 Start Chat with Selected User (Added this method)
+  // Start Chat with Selected User
   Future<void> _startChat(User selectedUser) async {
     final currentUser = widget.client.state.currentUser;
     if (currentUser == null) {
-      print("❌ Error: Current user is null.");
+      print("Error: Current user is null.");
       return;
     }
 
     try {
-      print("🔹 Fetching Stream token from backend...");
+      print("Fetching Stream token from backend...");
       final dio = Dio();
       final response = await dio.post(
-        'http://192.168.79.14:3000/generate-token', // ✅ Replace with your backend URL
+        'http://192.168.79.14:3000/generate-token', // Replace with your backend URL
         data: {'userId': currentUser.id, 'email': currentUser.extraData['email'] ?? ''},
       );
 
       if (response.statusCode == 200 && response.data['token'] != null) {
         final streamToken = response.data['token'];
-        print("✅ Token received: $streamToken");
+        print("Token received: $streamToken");
 
-        // ✅ Initialize Stream Chat Client
+        // Initialize Stream Chat Client
         await StreamChatService.initializeStreamChatClient(streamToken, currentUser.id, currentUser.name);
 
-        print("🔹 Creating or fetching chat with ${selectedUser.id}...");
+        print("Creating or fetching chat with ${selectedUser.id}...");
         final channel = await StreamChatService.createChannel(currentUser.id, selectedUser.id);
 
         Navigator.of(context).push(
@@ -118,10 +118,10 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
           ),
         );
       } else {
-        print("❌ Failed to fetch token from backend.");
+        print("Failed to fetch token from backend.");
       }
     } catch (e) {
-      print("❌ Error starting chat: $e");
+      print("Error starting chat: $e");
     }
   }
 
@@ -148,18 +148,13 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
                         final user = _searchResults[index];
-                        // final email = user.extraData['email'] as String? ?? ''; // ✅ Show email
 
                         return ListTile(
                           leading: CircleAvatar(
                             backgroundImage: NetworkImage(user.extraData['image'] as String? ?? ''),
                           ),
-                          // title: Text(user.name),
-                          title: Text(user.name
-                                    // user.name.contains('@') || user.name.length < 15 ? user.name : email, // ✅ Show name or email
-                                  ),
-                                  // subtitle: Text(email), // ✅ Always show email as subtitle
-                          onTap: () => _startChat(user), // ✅ Now calls the defined method
+                          title: Text(user.name),
+                          onTap: () => _startChat(user),
                         );
                       },
                     ),

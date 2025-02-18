@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
@@ -56,7 +55,7 @@ class TheftDetectionState extends State<TheftDetection> with WidgetsBindingObser
         print('Detected movement: $movement');
 
         if (_ignoreMovement) {
-          print("📂 File just selected, ignoring movement temporarily...");
+          print("File just selected, ignoring movement temporarily...");
           return;
         }
 
@@ -107,7 +106,6 @@ class TheftDetectionState extends State<TheftDetection> with WidgetsBindingObser
     }
   }
 
-  // ✅ NEW: Expose `startCooldown()` to be used from other files
   void startCooldown() {
     setState(() {
       _ignoreMovement = true;
@@ -118,7 +116,7 @@ class TheftDetectionState extends State<TheftDetection> with WidgetsBindingObser
         setState(() {
           _ignoreMovement = false;
         });
-        print("✅ Cooldown ended. Theft detection re-enabled.");
+        print("Cooldown ended. Theft detection re-enabled.");
       }
     });
   }

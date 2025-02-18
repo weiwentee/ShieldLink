@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream_chat; // Alias for StreamChat User
+import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream_chat;
 import 'package:shieldlink/pages/messages_page.dart';
 import 'package:shieldlink/pages/contacts_page.dart';
 import 'package:shieldlink/widgets/icon_buttons.dart';
@@ -8,12 +8,10 @@ import 'package:shieldlink/widgets/glowing_action_button.dart';
 import 'package:shieldlink/widgets/avatar.dart';
 import 'package:shieldlink/screens/user_search.dart';
 import 'package:shieldlink/theme.dart';
-import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart'; // Added for login screen
-import 'package:shieldlink/screens/login_screen.dart'; // Added for login screen
-import 'package:firebase_auth/firebase_auth.dart'; // Firebase Auth
-import 'package:stream_chat_flutter/stream_chat_flutter.dart'; // Stream Chat
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth; // Alias Firebase Auth User
-import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart' as auth_page; // Alias for LoginPage
+import 'package:firebase_auth/firebase_auth.dart'; 
+import 'package:stream_chat_flutter/stream_chat_flutter.dart'; 
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth; 
+import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart' as auth_page;
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key? key}) : super(key: key);
@@ -26,12 +24,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final ValueNotifier<int> pageIndex = ValueNotifier(0);
   final ValueNotifier<String> title = ValueNotifier('Messages');
   List<Channel> channelsList = [];
-  final FirebaseAuth _auth = FirebaseAuth.instance; // FirebaseAuth instance
+  final FirebaseAuth _auth = FirebaseAuth.instance; 
 
   @override
   void initState() {
     super.initState();
-    _checkAuthentication(); // Check authentication status
+    _checkAuthentication(); 
 
     _fetchChannels();
 
@@ -46,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  /// **Check if the user is authenticated**
+  // Check if the user is authenticated
   void _checkAuthentication() {
     final user = _auth.currentUser;
     if (user == null) {
@@ -57,16 +55,16 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       });
     } else {
-      // Optionally, verify user email or username again to ensure correctness
+      // Verify user email or username again
       _verifyUserAccount(user);
     }
   }
 
-  /// **Verify the current authenticated user**
+  // Verify the current authenticated user
   Future<void> _verifyUserAccount(firebase_auth.User user) async {
-    // Here, you can check user email/username or perform any additional checks
+    // Check user email/username
     if (user.email == null || user.email == "") {
-      // If the email is null or not set, you can sign out or take further action
+      // If the email is null or not set, sign out
       await _auth.signOut();
       Navigator.pushReplacement(
         context,
@@ -75,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// **Fetch channels based on authenticated user**
+  /// Fetch channels based on authenticated user
   Future<void> _fetchChannels() async {
     final client = StreamChat.of(context).client;
     final user = _auth.currentUser; // Get logged-in user
@@ -165,8 +163,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: user != null && user.image != null
                       ? Avatar.small(url: user.image!)
                       : const CircleAvatar(
-                          backgroundColor: Colors.grey, // Placeholder color
-                          child: Icon(Icons.person, color: Colors.white), // Default icon
+                          backgroundColor: Colors.grey,
+                          child: Icon(Icons.person, color: Colors.white),
                         ),
                 );
               },

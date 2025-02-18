@@ -21,10 +21,10 @@ class _SessionTimeOutListenerState extends State<SessionTimeOutListener> {
   Timer? _timer;
 
   void _startTimer() {
-    print("🔄 Resetting inactivity timer...");
+    print("Resetting inactivity timer...");
     _timer?.cancel(); // Cancel existing timer
     _timer = Timer(widget.duration, () {
-      print("⏳ Session expired due to inactivity.");
+      print("Session expired due to inactivity.");
       if (mounted) {
         widget.onTimeOut(); // Execute timeout function
       }
@@ -34,13 +34,13 @@ class _SessionTimeOutListenerState extends State<SessionTimeOutListener> {
   @override
   void initState() {
     super.initState();
-    print("🚀 Session timeout listener started.");
+    print("Session timeout listener started.");
     _startTimer(); // Start timer when widget initializes
   }
 
   @override
   void dispose() {
-    print("🛑 Session timeout listener disposed.");
+    print("Session timeout listener disposed.");
     _timer?.cancel();
     super.dispose();
   }
@@ -50,17 +50,17 @@ class _SessionTimeOutListenerState extends State<SessionTimeOutListener> {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
-        print("🖱 User tapped screen. Resetting timer.");
+        print("User tapped screen. Resetting timer.");
         _startTimer();
       },
       onPanUpdate: (_) {
-        print("📜 User swiped. Resetting timer.");
+        print("User swiped. Resetting timer.");
         _startTimer();
       },
       child: Focus(
         autofocus: true,
         onKey: (_, __) {
-          print("⌨️ User pressed a key. Resetting timer.");
+          print("User pressed a key. Resetting timer.");
           _startTimer();
           return KeyEventResult.handled;
         },

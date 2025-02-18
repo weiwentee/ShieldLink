@@ -4,8 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import '../../../widgets/masked_chat_wrapper.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../widgets/mask_message.dart';
-import 'package:shieldlink/features/security/theft_detection.dart'; // Import TheftDetection to call cooldown
-import 'fake_chat_screen.dart'; // ✅ Import the fake screen
+import 'package:shieldlink/features/security/theft_detection.dart'; 
+import 'fake_chat_screen.dart'; 
 
 class ChatScreen extends StatefulWidget {
   final Channel channel;
@@ -27,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Scaffold(
           appBar: StreamChannelHeader(),
           body: GestureDetector(
-            onDoubleTap: () { // ✅ Detect double-tap and switch to Fake Screen
+            onDoubleTap: () { // Detect double-tap and switch to Fake Screen
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => FakeChatScreen()),
@@ -95,10 +95,9 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ✅ FIXED: File Picker now properly prevents theft detection lock
   Future<void> _pickFile() async {
     try {
-      TheftDetection.of(context)?.startCooldown(); // ✅ Start cooldown to prevent theft detection
+      TheftDetection.of(context)?.startCooldown(); 
 
       FilePickerResult? result = await FilePicker.platform.pickFiles();
 
@@ -127,11 +126,10 @@ class _ChatScreenState extends State<ChatScreen> {
         await widget.channel.sendMessage(message);
       }
     } catch (e) {
-      print("❌ Error picking file: $e");
+      print("Error picking file: $e");
     }
   }
 
-  // ✅ NO CHANGES TO EXPIRY TIME PICKER LOGIC
   Future<int?> _showExpiryDialog(BuildContext context) async {
     Duration selectedDuration = const Duration(minutes: 5);
 

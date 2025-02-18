@@ -1,9 +1,6 @@
-
 import 'package:flutter/material.dart';
 
-
 class FormContainerWidget extends StatefulWidget {
-
   final TextEditingController? controller;
   final Key? fieldKey;
   final bool? isPasswordField;

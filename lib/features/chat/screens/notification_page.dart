@@ -30,9 +30,9 @@ class NotificationPageState extends State<NotificationPage> {
                     showNotifications = value;
                   });
                 },
-                activeColor: Colors.blue,  // Active color blue
-                inactiveThumbColor: Colors.white,  // Inactive thumb color white
-                inactiveTrackColor: Colors.grey,  // Inactive track color grey
+                activeColor: Colors.blue, 
+                inactiveThumbColor: Colors.white, 
+                inactiveTrackColor: Colors.grey, 
               ),
             ),
             const Divider(),
@@ -47,9 +47,9 @@ class NotificationPageState extends State<NotificationPage> {
                     highMessagePreview = value;
                   });
                 },
-                activeColor: Colors.blue,  // Active color blue
-                inactiveThumbColor: Colors.white,  // Inactive thumb color white
-                inactiveTrackColor: Colors.grey,  // Inactive track color grey
+                activeColor: Colors.blue, 
+                inactiveThumbColor: Colors.white,  
+                inactiveTrackColor: Colors.grey,  
               ),
             ),
           ],

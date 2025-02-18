@@ -1,4 +1,3 @@
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shieldlink/features/global/toast.dart';
 
@@ -8,7 +7,6 @@ class FirebaseAuthService {
   FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<User?> signUpWithEmailAndPassword(String email, String password) async {
-
     try {
       UserCredential credential =await _auth.createUserWithEmailAndPassword(email: email, password: password);
       return credential.user;
@@ -21,11 +19,9 @@ class FirebaseAuthService {
       }
     }
     return null;
-
   }
 
   Future<User?> signInWithEmailAndPassword(String email, String password) async {
-
     try {
       UserCredential credential =await _auth.signInWithEmailAndPassword(email: email, password: password);
       return credential.user;
@@ -35,13 +31,7 @@ class FirebaseAuthService {
       } else {
         showToast(message: 'An error occurred: ${e.code}');
       }
-
     }
     return null;
-
   }
-
-
-
-
 }

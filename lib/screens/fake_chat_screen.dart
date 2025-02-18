@@ -14,7 +14,7 @@ class _FakeChatScreenState extends State<FakeChatScreen> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onDoubleTap: () { // ✅ Double-tap switches back to the real chat
+      onDoubleTap: () { // Double-tap to switch back to the real chat
         Navigator.pop(context);
       },
       child: Scaffold(

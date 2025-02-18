@@ -1,5 +1,3 @@
-// lib/services/user_service.dart
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'stream_chat_service.dart';  // Importing StreamChatService to use the token

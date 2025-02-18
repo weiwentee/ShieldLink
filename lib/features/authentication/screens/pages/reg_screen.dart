@@ -1,12 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:shieldlink/app.dart';
-// import 'package:shieldlink/features/authentication/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:shieldlink/features/authentication/screens/pages/login_screen.dart';
 import 'package:shieldlink/features/global/toast.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:shieldlink/screens/home_screen.dart';
 import 'package:stream_chat_flutter_core/stream_chat_flutter_core.dart';
 import 'package:dio/dio.dart';
 
@@ -38,7 +35,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // White background
+      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text("Sign Up"),
@@ -288,7 +285,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
         if (response.statusCode == 200 && response.data['token'] != null) {
           final token = response.data['token'];
-          print("✅ Stream Chat token received: $token");
+          print("Stream Chat token received: $token");
 
           final client = StreamChatCore.of(context).client;
 
@@ -297,12 +294,12 @@ class _SignUpPageState extends State<SignUpPage> {
             token,
           );
 
-          print("✅ User connected to Stream Chat successfully.");
+          print("User connected to Stream Chat successfully.");
         } else {
           throw Exception('Failed to fetch token from backend');
         }
       } catch (e) {
-        print('❌ Error connecting to Stream Chat: $e');
+        print('Error connecting to Stream Chat: $e');
         throw e;
       }
     }

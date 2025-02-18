@@ -13,7 +13,7 @@ class StreamChatService {
         name: userName,
         image: userImage,
       ),
-      token ?? client.devToken(userId).rawValue, // Use proper authentication in production
+      token ?? client.devToken(userId).rawValue, 
     
       
     );

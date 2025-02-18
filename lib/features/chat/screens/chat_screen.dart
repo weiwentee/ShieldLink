@@ -19,7 +19,6 @@ class ChannelPage extends StatelessWidget {
                   parent: parentMessage!,
                 ),
                 messageBuilder: (context, message, index, defaultWidget) {
-                  // Only apply MaskMessage if it's a text message (no attachments)
                   if (message.message.attachments.isEmpty) {
                     return MaskMessage(message: message.message);
                   }
@@ -66,7 +65,6 @@ class _ThreadPageState extends State<ThreadPage> {
               child: StreamMessageListView(
                 parentMessage: widget.parent,
                 messageBuilder: (context, message, index, defaultWidget) {
-                  // Only apply MaskMessage if it's a text message (no attachments)
                   if (message.message.attachments.isEmpty) {
                     return MaskMessage(message: message.message);
                   }

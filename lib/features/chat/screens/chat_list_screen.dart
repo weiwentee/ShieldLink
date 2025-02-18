@@ -87,16 +87,11 @@ class _ChannelListPageState extends State<ChannelListPage> {
   Widget _channelTileBuilder(BuildContext context, List<Channel> channels,
       int index, StreamChannelListTile defaultChannelTile) {
     final channel = channels[index];
-    // final lastMessage = channel.state?.messages.reversed.firstWhereOrNull(
-    //   (message) => !message.isDeleted,
-    // );
-
-    // final subtitle = lastMessage == null ? 'nothing yet' : lastMessage.text!;
     final opacity = (channel.state?.unreadCount ?? 0) > 0 ? 1.0 : 0.5;
 
     final theme = StreamChatTheme.of(context);
 
-    // 🔹 Get other user's info (email & name)
+    // Get other user's info (email & name)
     final otherUser = channel.state?.members
         .where((member) => member.userId != StreamChat.of(context).currentUser!.id)
         .firstOrNull
@@ -119,12 +114,11 @@ class _ChannelListPageState extends State<ChannelListPage> {
       },
       leading: StreamChannelAvatar(channel: channel),
       title: Text(
-        '$otherUserName ($otherUserEmail)', // 🔹 Display Name & Email
+        '$otherUserName ($otherUserEmail)', // Display Name & Email
         style: theme.channelPreviewTheme.titleStyle!.copyWith(
           color: theme.colorTheme.textHighEmphasis.withOpacity(opacity),
         ),
       ),
-      // subtitle: Text(subtitle),
       trailing: channel.state!.unreadCount > 0
           ? CircleAvatar(
               radius: 10,
